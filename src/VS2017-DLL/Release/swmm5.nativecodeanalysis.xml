@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\figueral\Documents\SWMM-TEMP\PacketEAWAG\PacketEAWAG\source5_1_014\swmm51014_engine_1\swmm51014_engine_1\source5_1_014\source5_1_014\</FILEPATH>
+      <FILENAME>swmm5.c</FILENAME>
+      <LINE>372</LINE>
+      <COLUMN>37</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>swmm_start</FUNCTION>
+    <DECORATED>swmm_start@4</DECORATED>
+    <FUNCLINE>342</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\figueral\Documents\SWMM-TEMP\PacketEAWAG\PacketEAWAG\source5_1_014\swmm51014_engine_1\swmm51014_engine_1\source5_1_014\source5_1_014\</FILEPATH>
+      <FILENAME>swmm5.c</FILENAME>
+      <LINE>494</LINE>
+      <COLUMN>56</COLUMN>
+    </SFA>
+    <DEFECTCODE>26451</DEFECTCODE>
+    <DESCRIPTION>Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).</DESCRIPTION>
+    <FUNCTION>swmm_step</FUNCTION>
+    <DECORATED>swmm_step@4</DECORATED>
+    <FUNCLINE>433</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\figueral\Documents\SWMM-TEMP\PacketEAWAG\PacketEAWAG\source5_1_014\swmm51014_engine_1\swmm51014_engine_1\source5_1_014\source5_1_014\</FILEPATH>
+      <FILENAME>swmm5.c</FILENAME>
+      <LINE>827</LINE>
+      <COLUMN>14</COLUMN>
+    </SFA>
+    <DEFECTCODE>6031</DEFECTCODE>
+    <DESCRIPTION>Return value ignored: '_mkdir'.</DESCRIPTION>
+    <FUNCTION>getTempFileName</FUNCTION>
+    <DECORATED>getTempFileName</DECORATED>
+    <FUNCLINE>811</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\figueral\Documents\SWMM-TEMP\PacketEAWAG\PacketEAWAG\source5_1_014\swmm51014_engine_1\swmm51014_engine_1\source5_1_014\source5_1_014\</FILEPATH>
+      <FILENAME>swmm5.c</FILENAME>
+      <LINE>874</LINE>
+      <COLUMN>14</COLUMN>
+    </SFA>
+    <DEFECTCODE>6031</DEFECTCODE>
+    <DESCRIPTION>Return value ignored: '_mkdir'.</DESCRIPTION>
+    <FUNCTION>getTempFileNameAscii</FUNCTION>
+    <DECORATED>getTempFileNameAscii</DECORATED>
+    <FUNCLINE>858</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\figueral\Documents\SWMM-TEMP\PacketEAWAG\PacketEAWAG\source5_1_014\swmm51014_engine_1\swmm51014_engine_1\source5_1_014\source5_1_014\</FILEPATH>
+      <FILENAME>swmm5.c</FILENAME>
+      <LINE>921</LINE>
+      <COLUMN>14</COLUMN>
+    </SFA>
+    <DEFECTCODE>6031</DEFECTCODE>
+    <DESCRIPTION>Return value ignored: '_mkdir'.</DESCRIPTION>
+    <FUNCTION>getTempFileNameAsciih</FUNCTION>
+    <DECORATED>getTempFileNameAsciih</DECORATED>
+    <FUNCLINE>905</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

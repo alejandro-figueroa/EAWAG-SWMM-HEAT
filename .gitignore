@@ -1,0 +1,100 @@
+# Prerequisites
+
+*.d
+
+
+
+# Object files
+
+*.o
+
+*.ko
+
+*.elf
+
+
+
+# Linker output
+
+*.map
+
+
+
+# Precompiled Headers
+
+*.gch
+
+*.pch
+
+
+
+# Libraries
+
+*.a
+
+*.la
+
+*.lo
+
+
+
+# Shared objects (inc. Windows DLLs)
+
+*.so
+
+*.so.*
+
+*.dylib
+
+
+
+# Executables
+
+*.out
+
+*.app
+
+*.i*86
+
+*.x86_64
+
+*.hex
+
+
+
+# Debug files
+
+*.dSYM/
+
+*.su
+
+*.idb
+
+
+
+
+# Kernel Module Compile Results
+
+*.mod*
+
+*.cmd
+
+.tmp_versions/
+
+modules.order
+
+Module.symvers
+
+Mkfile.old
+
+dkms.conf
+
+
+
+# Visual Studio 2015/2017 cache/options directory
+
+.vs/
+
+Release/*
+
+Debug/*
