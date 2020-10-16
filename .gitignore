@@ -12,6 +12,12 @@
 
 *.elf
 
+*.obj
+
+*.sarif
+
+*.xml
+
 
 
 # Linker output
