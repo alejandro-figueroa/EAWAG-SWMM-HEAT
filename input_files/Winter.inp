@@ -16,15 +16,14 @@ START_TIME           00:00:00
 REPORT_START_DATE    04/01/2019															
 REPORT_START_TIME    00:00:00															
 END_DATE             04/04/2019															
-END_TIME             00:00:00															
+END_TIME             08:20:00															
 SWEEP_START          01/01															
 SWEEP_END            01/31															
 DRY_DAYS             0															
 REPORT_STEP          00:01:00															
 WET_STEP             00:00:15															
 DRY_STEP             00:01:00															
-ROUTING_STEP         0:00:10 															
-;;RULE_STEP          00:00:00													
+ROUTING_STEP         0:00:10 													
 															
 INERTIAL_DAMPING     PARTIAL															
 NORMAL_FLOW_LIMITED  BOTH															
@@ -42,9 +41,10 @@ THREADS              1
 TEMP_MODEL           1															
 DENSITY              1000.0															
 SPEC_HEAT_CAPACITY   4190															
-HUMIDITY             0.95			!Relative Humidity (0.95 = 95% Humidity)												
-EXT_UNIT             T	                        
-ASCII_OUT            1				!ASCI_OUT = 0 (No Ascii output), ASCI_OUT = 1 (Additional Ascii File)					
+HUMIDITY             0.83															
+EXT_UNIT             T	
+GLOBTPAT             1
+ASCII_OUT            0													
 															
 [EVAPORATION]															
 ;;Data Source    Parameters															
@@ -55,37 +55,61 @@ DRY_ONLY         NO
 [JUNCTIONS]															
 ;;Name           Elevation  MaxDepth   InitDepth  SurDepth   Aponded   															
 ;;-------------- ---------- ---------- ---------- ---------- ----------															
-;591a             520.687    3.23       0.14       0          0         															
-592              519.61     2          0.1        0          0         															
+591a             520.6865    0.7          0.01        0          0         															
+591b             519.6865    0.7          0.01        0          0        															
+591c             518.6865    0.7          0.01        0          0         															
+591d             517.6865    0.7          0.01        0          0         															
+591e             516.6865    0.7          0.01        0          0         															
+591f             515.6865    0.7          0.01        0          0         															
+591g             514.6865    0.7          0.01        0          0         															
+591h             513.6865    0.7          0.01        0          0         															
+591i             512.6865    0.7          0.01        0          0           															
+592              511.6865    0.7          0.01        0          0         															
 															
 [OUTFALLS]															
 ;;Name           Elevation  Type       Stage Data       Gated    Route To        															
 ;;-------------- ---------- ---------- ---------------- -------- ----------------															
-Out              519.44          FREE                        NO                       															
+Out              510.6865          FREE                        NO                       															
 															
 [CONDUITS]															
 ;;Name	From Node	To Node	Length	Roughness  InOffset	OutOffset	InitFlow	MaxFlow	Thickness	k_Pipe	k_Soil	specHcSoil	densitySoil	AirPattern	SoilPattern	thermalEnergy
 ;;--------------	----------------	----------------	----------	---------- ----------	----------	----------	----------	----------	----------	----------	----------	----------	----------	----------	----------
-;591_592	591a	592	1000	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"	
-Out_link	592	Out	800	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"	
+591_591a   		591a	591b    100	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"	
+591_591b   		591b	591c    100	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"	
+591_591c   		591c	591d    100	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"	
+591_591d   		591d	591e    100	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"	
+591_591e   		591e	591f    100	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"	
+591_591f   		591f	591g    100	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"	
+591_591g   		591g	591h    100	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"	
+591_591h   		591h	591i    100	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"		
+591_592   		591i	592     100	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"
+Out_link	        592	Out	100	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"	
 															
 [XSECTIONS]															
 ;;Link           Shape        Geom1            Geom2      Geom3      Geom4      Barrels    Culvert   															
 ;;-------------- ------------ ---------------- ---------- ---------- ---------- ---------- ----------															
-;591_592          CIRCULAR     0.7              0          0          0          1                    															
-Out_link         CIRCULAR     0.7              0          0          0          1                    															
+591_591a          CIRCULAR     0.7              0          0          0          1            																
+591_591b          CIRCULAR     0.7              0          0          0          1     														
+591_591c          CIRCULAR     0.7              0          0          0          1     														
+591_591d          CIRCULAR     0.7              0          0          0          1     														
+591_591e          CIRCULAR     0.7              0          0          0          1     														
+591_591f          CIRCULAR     0.7              0          0          0          1     														
+591_591g          CIRCULAR     0.7              0          0          0          1   														
+591_591h          CIRCULAR     0.7              0          0          0          1       											
+591_592           CIRCULAR     0.7              0          0          0          1                    															
+Out_link          CIRCULAR     0.7              0          0          0          1                    															
 
-[POLLUTANTS]																
-;;Name           Units  Crain      Cgw        Crdii      Kdecay     SnowOnly   Co-Pollutant     Co-Frac    Cdwf       Cinit     																
-;;-------------- ------ ---------- ---------- ---------- ---------- ---------- ---------------- ---------- ---------- ----------																
-temperature      CELSIUS 0.0        0.0        0.0        0.0        NO         *                0.0        25         0         					
+[WTEMPERATURE]																
+;;Name           Units  Crain      Cgw        Crdii      Kdecay         Cdwf       Cinit     																
+;;-------------- ------ ---------- ---------- ---------- ----------  ---------- ----------																
+WTEMPERATURE      CELSIUS 0.0        0.0        0.0        0.0              0         0         					
 
 													
 [INFLOWS]															
 ;;Node           Constituent      Time Series      Type     Mfactor  Sfactor  Baseline Pattern															
 ;;-------------- ---------------- ---------------- -------- -------- -------- -------- --------															
-592             FLOW             Val_FlowUp_SWMM              FLOW     1.0      1.0              															
-592	temperature	Val_TempUp_SWMM	CONCEN	1.0 1.0											
+591a             FLOW             Val_FlowUp_SWMM  FLOW           1.0      1.0              															
+591a	         WTEMPERATURE	  Val_TempUp_SWMM  WTEMPERATURE	  1.0      1.0											
 															
 [TIMESERIES]															
 ;;Name           Date       Time       Value     															
@@ -99,10 +123,9 @@ Val_TempUp_SWMM    FILE "Temp_Sens.txt"
 ;;Name           Type       Multipliers															
 ;;-------------- ---------- -----------															
 ; refine this according to depth															
-S_GN_3.0         MONTHLY    2.9   3.75  8   8  12.27 12.5															
-S_GN_3.0                    19.72 17.93 15.21 12.38 8.15  10 															
+S_GN_3.0         DAILY    1.0 2.0 3.0 4.0 5.0 6.0 7.0															
 ;															
-A_GN             MONTHLY    7.04  7.04  10  11 12.27 23															
+A_GN             MONTHLY    16  10  10  14 10 10															
 A_GN                        18.01 17.96 17.40 16.61 10.32 5															
 ;															
 															
@@ -121,7 +144,15 @@ Units      None
 [COORDINATES]															
 ;;Node           X-Coord            Y-Coord           															
 ;;-------------- ------------------ ------------------															
-;591a             3473.853           3895.411          															
+591a             3473.853           3895.411          															
+591b             3573.853           3895.411 	   															
+591c             3673.853           3895.411 	   															
+591d             3773.853           3895.411 	   															
+591e             3873.853           3895.411 	   															
+591f             3973.853           3895.411 	   															
+591g             3683.853           3895.411 	   															
+591h             3693.853           3895.411 	   															
+591i             3698.853           3895.411 														
 592              1542.156           4397.012          															
 Out              1766.275           4855.923          															
 															
