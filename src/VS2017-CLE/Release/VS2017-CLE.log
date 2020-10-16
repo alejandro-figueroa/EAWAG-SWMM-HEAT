@@ -1,8 +1,0 @@
-﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(453,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
-  main.c
-  Generating code
-  6 of 6 functions (100.0%) were compiled.
-    1 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
-  Finished generating code
-  VS2017-CLE.vcxproj -> C:\Users\figueral\Documents\SWMM-TEMP\PacketEAWAG\PacketEAWAG\source5_1_014\swmm51014_engine_1\swmm51014_engine_1\eawag-swmm_temp\src\VS2017-CLE\..\..\build\swmm5.exe
