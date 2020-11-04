@@ -826,9 +826,9 @@ double getReactedTemp(double oldTemp, int i, double tStep, int month, int day, i
 	//radThick = radius  - thickness;
 	//penThick = radThick + radius;
 	//double radi = 1.0 / radius;
-	Ews = deltaTs * wetp * length * length2 / (log(radThick / radius) / kp +
-		log(penThick / radThick) / ks +
-		1.0 / (0.023 * powl(reywat, 0.8) * powl(prwat, 0.3333) * 0.6 / hydradi));
+	Ews = deltaTs * wetp * length * length2 / ( radius * (log(radThick / radius) / kp +
+		log(penThick / radThick) / ks) +
+		hydradi / (0.023 * powl(reywat, 0.8) * powl(prwat, 0.3333) * 0.6));
 	//fprintf(stdout, "%g %g %g %g %g\n", radius, thickness, penDepth, radThick, penThick);
 	//fprintf(stdout, "%g\n", flow);
 	// calculate the change in temperature over the given time step
@@ -927,9 +927,9 @@ double getReactedTemps(double oldTemp, int i, double tStep, double airt, double 
 	//radThick = radius  - thickness;
 	//penThick = radThick + radius;
 	//double radi = 1.0 / radius;
-	Ews = deltaTs * wetp * length * length2 / (log(radThick / radius) / kp +
-		log(penThick / radThick) / ks +
-		1.0 / (0.023 * powl(reywat, 0.8) * powl(prwat, 0.3333) * 0.6 / hydradi));
+	Ews = deltaTs * wetp * length * length2 / (radius * ( log(radThick / radius) / kp +
+		log(penThick / radThick) / ks) +
+		hydradi / (0.023 * powl(reywat, 0.8) * powl(prwat, 0.3333) * 0.6 ));
 	//fprintf(stdout, "%g %g %g %g %g\n", radius, thickness, penDepth, radThick, penThick);
 	//fprintf(stdout, "%g\n", flow);
 	// calculate the change in temperature over the given time step
