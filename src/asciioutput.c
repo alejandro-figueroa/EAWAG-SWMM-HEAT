@@ -178,7 +178,7 @@ int output_open_ascii()
     fseek(Foutasciih.file, 0, SEEK_SET);
     fprintf(Foutasciih.file, "MAGICNUMBER, VERSION, FLOW_UNITS, NUMSUBCATCH, NUMNODES, NUMLINKS, NUMPOLLUTS\n");
     fprintf(Foutasciih.file, "%d %d %d %d %d %d %d\n", MAGICNUMBER, VERSION, FlowUnits, NumSubcatch, NumNodes, NumLinks, \
-        NumPolluts);
+        NumPolluts, TempModel.active);
     //k = MAGICNUMBER;
     //fwrite(&k, sizeof(INT4), 1, Fout.file);   // Magic number
     //k = VERSION;

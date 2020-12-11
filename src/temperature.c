@@ -317,8 +317,8 @@ void findLinkTemp(int i, double tStep, double unitScale, int month, int day, int
 	if (Link[i].newFlow < 0.0) j = Link[i].node2;
 
 	// --- link temperature is that of upstream node when
-	//     link is not a conduit or is a dummy link
-	if (Link[i].type != CONDUIT || Link[i].xsect.type == DUMMY)
+	//     link is not a conduit or is a dummy link or retention time less than 10secs
+	if (Link[i].type != CONDUIT || Link[i].xsect.type == DUMMY || Link[i].newVolume /Link[i].newFlow < 10.0)
 	{
 			Link[i].newTemp = Node[j].newTemp;
 		return;
@@ -360,7 +360,7 @@ void findLinkTemp(int i, double tStep, double unitScale, int month, int day, int
 	// --- examine each pollutant
 	//for (p = 0; p < Nobjects[POLLUT]; p++)
 	//{
-		// --- start with concen. at start of time step
+		// --- start with temperature at start of time step
 		c1 = Link[i].oldTemp;
 
 		// --- update mass balance accounting for seepage loss
@@ -371,8 +371,10 @@ void findLinkTemp(int i, double tStep, double unitScale, int month, int day, int
 		/* START modification by Peter Schlagbauer | TUGraz */
 			// it has been observed that at low flow rates the model may become unstable, therefore 0.5 L/s is a boundary
 			//if (Link[i].newFlow * UCF(FLOW) / 1000 > 0.0005) 
-		if (Link[i].newFlow > unitScale * Link[i].xsect.yFull)
-			//if (Link[i].newFlow * UCF(FLOW)  > 0.0005) 
+		//if(Link[i].newFlow > unitScale * Link[i].xsect.yFull)
+		//if (Link[i].newDepth > unitScale * Link[i].xsect.yFull)
+			if (Link[i].newFlow * UCF(FLOW)  > 0.00005) 
+		//if (v1 > ZeroVolume) //set concen.to soil temperature if remaining volume is negligible
 		{
 				// --- adjust temperature by heat exchange processes
 				if (Node[j].newTemp > 0.0) 					// one ore more inflows into the node
@@ -381,7 +383,7 @@ void findLinkTemp(int i, double tStep, double unitScale, int month, int day, int
 					c2 = getReactedTemp(c1, i, tStep, month, day, hour);
 		}
 		else
-			c2 = c1;
+			c2 = NAN;
 
 		// --- mix resulting contents with inflow from upstream node
 		if (!isnan(Node[j].newTemp)) { // do not consider NaN values
@@ -402,7 +404,7 @@ void findLinkTemp(int i, double tStep, double unitScale, int month, int day, int
 		}
 		/* END modification by Peter Schlagbauer | TUGraz */
 
-				// --- assign new concen. to link
+				// --- assign new temperature to link
 		Link[i].newTemp = c2;
 	//}
 }
@@ -492,8 +494,9 @@ void findLinkTemps(int i, double tStep, double unitScale, double airt, double so
 	c1 *= fEvap;
 	/* START modification by Peter Schlagbauer | TUGraz */
 		// it has been observed that at low flow rates the model may become unstable, therefore 0.5 L/s is a boundary
-		//if (Link[i].newFlow * UCF(FLOW) / 1000 > 0.0005) 
-	if (Link[i].newFlow > unitScale * Link[i].xsect.yFull)
+		if (Link[i].newFlow * UCF(FLOW) / 1000 > 0.00005) 
+	//if (Link[i].newFlow > unitScale * Link[i].xsect.yFull)
+	//if (v1 > ZeroVolume) //set concen.to soil temperature if remaining volume is negligible
 	{
 			// --- adjust temperature by heat exchange processes
 		if (Node[j].newTemp > 0.0) 					// one ore more inflows into the node
@@ -508,7 +511,7 @@ void findLinkTemps(int i, double tStep, double unitScale, double airt, double so
 		//}
 	}
 	else
-		c2 = c1;
+		c2 = NAN;
 
 	// --- mix resulting contents with inflow from upstream node
 	if (!isnan(Node[j].newTemp)) { // do not consider NaN values
@@ -516,7 +519,7 @@ void findLinkTemps(int i, double tStep, double unitScale, double airt, double so
 		c2 = getMixedTemp(c2, v1, wIn, qIn, tStep);
 	}
 
-	// --- set concen. to zero if remaining volume is negligible
+	// --- set temperature to soil temperature if remaining volume is negligible
 	if (v2 < ZeroVolume)
 	{
 		massbal_addToFinalStorageT(c2 * v2);
