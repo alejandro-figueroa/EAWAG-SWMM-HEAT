@@ -439,7 +439,7 @@ void findLinkTemps(int i, double tStep, double unitScale, double airt, double so
 
 	// --- link temperature is that of upstream node when
 	//     link is not a conduit or is a dummy link
-	if (Link[i].type != CONDUIT || Link[i].xsect.type == DUMMY)
+	if (Link[i].type != CONDUIT || Link[i].xsect.type == DUMMY || Link[i].newVolume / Link[i].newFlow < 10.0)
 	{
 		//for (p = 0; p < Nobjects[POLLUT]; p++)
 		//{
