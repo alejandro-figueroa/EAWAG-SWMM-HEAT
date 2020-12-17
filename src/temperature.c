@@ -118,7 +118,6 @@ void temprout_execute(double tStep)
 {
 	int    i, j;
 	double qIn, vAvg;
-	double unitScale;
 	double airt, soilt;
 
 	// get the current month of simulation
@@ -349,8 +348,8 @@ void findLinkTemp(int i, double tStep, int month, int day, int hour)
 
 		// --- increase concen. by evaporation factor
 		c1 *= fEvap;
-			// it has been observed that at low flow rates the model may become unstable, therefore 0.025 L/s is a boundary
-			if (Link[i].newFlow * UCF(FLOW)  > 0.025) 
+			// it has been observed that at low flow rates the model may become unstable, therefore 0.02 L/s is a boundary
+			if (Link[i].newFlow * UCF(FLOW)  > 0.02) 
 		{
 				// --- adjust temperature by heat exchange processes
 					c2 = getReactedTemp(c1, i, tStep, month, day, hour);
@@ -458,8 +457,8 @@ void findLinkTemps(int i, double tStep, double airt, double soilt)
 
 	// --- increase concen. by evaporation factor
 	c1 *= fEvap;
-		// it has been observed that at low flow rates the model may become unstable, therefore 0.025 L/s is a boundary
-		if (Link[i].newFlow * UCF(FLOW)  > 0.025) 
+		// it has been observed that at low flow rates the model may become unstable, therefore 0.02 L/s is a boundary
+		if (Link[i].newFlow * UCF(FLOW)  > 0.02) 
 	{
 			// --- adjust temperature by heat exchange processes
 			c2 = getReactedTemps(c1, i, tStep, airt, soilt);
@@ -766,9 +765,6 @@ double getReactedTemp(double oldTemp, int i, double tStep, int month, int day, i
 		Ewa = widthLength * deltaV * (5.85 * deltaTa -
 	     	  8.75 * ps0 * (exp(-ts0 / (oldTemp + 273.15)) -
 			  humidity * exp(-ts0 / (airTemp + 273.15))));
-		// fprintf(stdout, "%g %g %g %g\n", widthLength * deltaV * (5.85 * deltaTa),widthLength , deltaV,widthLength * deltaV * (\
-             8.75 * ps0 * (exp(-ts0 / (oldTemp + 273.15)) - \
-                 humidity * exp(-ts0 / (airTemp + 273.15)))));
 	}
 	else
 	{
