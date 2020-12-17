@@ -1,4 +1,4 @@
-LIBRARY     SWMM5.DLL
+LIBRARY     swmm5.DLL
 
 EXPORTS
     swmm_close                    = _swmm_close@0
