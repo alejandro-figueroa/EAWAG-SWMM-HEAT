@@ -732,20 +732,22 @@ typedef struct
    char          superCritical;   // super-critical flow flag
    char          hasLosses;       // local losses flag
    char          fullState;       // determines if either or both ends full
-   /* START modification by Peter Schlagbauer | TUGraz */
+   /* START modification by Alejandro Figueroa | Eawag */
    double		 thickness;		  // wall thickness (ft)
    double		 kPipe;			  // thermal conductivity pipe (W/m.K)
    double		 kSoil;			  // thermal conductivity soil (W/m.K)
    double		 specHcSoil;      // specific heat capacity of surrounding soil (J/kg.K)
    double        densitySoil;	  // density of surrounding soil (kg/m3)
-   double        penDepth;  	  // penetrationDepth (calculated) (m)
+   double        penDepth;  	  // penetrationDepth (calculated) (ft)
    double		 airPat;	      // insewer-air pattern
    double		 soilPat;		  // soil pattern
    double        wetp;            // wetted perimeter at each time step (ft)
+   double        oldwetp;         // wetted perimeter at old time step (ft)
    double        width;           // top width of flow surface at each time step (ft)
+   double        oldwidth;        // top width of flow surface at old time step (ft)
    double		 velocity;		  // velocity (ft/s)
    double		 thermalEnergy;	  // use of thermal energy (kW or C)
-   /* END modification by Peter Schlagbauer | TUGraz */
+   /* END modification by Alejandro Figueroa | Eawag */
 }  TConduit;
 
 //------------
