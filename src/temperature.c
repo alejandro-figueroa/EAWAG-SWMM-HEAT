@@ -74,10 +74,11 @@ void    temprout_init()
 		isWet = (Node[i].newDepth > FUDGE);
 
 			//if (strcmp(QualUnitsWords[Temperature.units], "CELSIUS") == 0 && TempModel.active == 1)
-				c = NAN; // set temperature to NaN, because 0 is a valid temperatur value
+				c =- NAN; // set temperature to NaN, because 0 is a valid temperatur value
 			//else
 			//	c = 0.0;
 			if (isWet) c = WTemperature.initTemp;
+			// fprintf(stdout, "nodes %s %g %d %d\n", Node[i].ID, c, isWet, Nobjects[NODE]);
 			Node[i].oldTemp = c;
 			Node[i].newTemp = c;
 
@@ -93,10 +94,11 @@ void    temprout_init()
 	{
 		isWet = (Link[i].newDepth > FUDGE);
 		//	if (strcmp(QualUnitsWords[Temperature.units], "CELSIUS") == 0 && TempModel.active == 1)
-				c = NAN; // set temperature to NaN, because 0 is a valid temperatur value
+				c =- NAN; // set temperature to NaN, because 0 is a valid temperatur value
 		//	else
 		//		c = 0.0;
 			if (isWet) c = WTemperature.initTemp;
+			//fprintf(stdout, "Link %s %g %d %d\n", Link[i].ID, c, isWet, Nobjects[LINK]);
 			Link[i].oldTemp = c;
 			Link[i].newTemp = c;
 
@@ -125,6 +127,7 @@ void temprout_execute(double tStep)
 	int month = datetime_monthOfYear(currentDate) - 1;
 	int day   = datetime_dayOfWeek(currentDate) - 1;
     int hour  = datetime_hourOfDay(currentDate);
+	//fprintf(stdout, "NEW ITER\n");
 	if (TempModel.GTPattern == 1)
 	{
 		airt = inflow_getPatternFactor((int)Conduit[Link[0].subIndex].airPat, month, day, hour
@@ -193,6 +196,7 @@ double getMixedTemp(double c, double v1, double wIn, double qIn, double tStep)
 	double vIn, cIn, cMax;
 
 	// --- if no inflow then reactor temperature is unchanged
+	//fprintf(stdout, "QINNNNN = %g\n", qIn);
 	if (qIn <= ZERO) return c;
 	// --- compute temperature of any inflow
 	vIn = qIn * tStep;
@@ -202,6 +206,7 @@ double getMixedTemp(double c, double v1, double wIn, double qIn, double tStep)
 	cMax = MAX(c, cIn);
 
 	// --- mix inflow with current reactor temperature
+	//fprintf(stdout, "reaction %g %g %g %g\n", c, v1, wIn, vIn);
 	c = (c * v1 + wIn * tStep) / (v1 + vIn);
 	c = MIN(c, cMax);
 	c = MAX(c, 0.0);
@@ -238,10 +243,14 @@ void findLinkMassFlowT(int i, double tStep)
 			{
 				w = qLink * Link[i].oldTemp;
 				Node[j].newTemp += w;
+
+				//	fprintf(stdout, "links %s %g %g\n", Link[i].ID, Link[i].oldTemp, qLink * UCF(FLOW));
 			}
 			else
-				w = 0;
-
+			{
+				w = 0.0;
+			}
+			//fprintf(stdout, "node new temp %g %g %g\n", Link[i].oldTemp, Node[j].newTemp , Node[j].newTemp / qLink);
 			// --- update total temperature/heat transported by link
 		Link[i].totalLoadT += w * tStep;
 	//}
@@ -259,129 +268,22 @@ void findNodeTemp(int j)
 
 	// --- if there is flow into node then  = mass inflow/node flow
 	qNode = Node[j].inflow;
-	if (qNode > ZERO)
+	//fprintf(stdout, "node find  prev %s %g\n", Node[j].ID, Node[j].newTemp);
+	if (qNode > ZERO )
 	{
+
 			Node[j].newTemp /= qNode;
 	}
-
 	// set temperature to NaN, because 0 is a valid temperatur value
-	else Node[j].newTemp = NAN;
+	else
+		Node[j].newTemp = -NAN;
+
+	//fprintf(stdout, "node find %s %g %g\n", Node[j].ID, Node[j].newTemp, qNode*UCF(FLOW));
 }
 
 //=============================================================================
 
 void findLinkTemp(int i, double tStep, int month, int day, int hour)
-//
-//  Input:   i = link index
-//           tStep = routing time step (sec)
-//  Output:  none
-//  Purpose: finds new temperature in a link at end of the current time step.
-//
-{
-	int    j,             // upstream node index
-		   k;             // conduit index
-	double wIn,           // temperature mass inflow rate 
-		qIn,              // inflow rate (cfs)
-		qSeep,            // rate of seepage loss (cfs)
-		v1,               // link volume at start of time step (ft3)
-		v2,               // link volume at end of time step (ft3)
-		c1,               // current temperature within link 
-		c2,               // new temperature within link 
-		vEvap,            // volume lost to evaporation (ft3)
-		vLosses,          // evap. + seepage volume loss (ft3)
-		fEvap,            // evaporation concentration factor
-		barrels;          // number of barrels in conduit
-
- // --- identify index of upstream node
-	j = Link[i].node1;
-	if (Link[i].newFlow < 0.0) j = Link[i].node2;
-
-	// --- link temperature is that of upstream node when
-	//     link is not a conduit or is a dummy link or retention time less than 10secs
-	if (Link[i].type != CONDUIT || Link[i].xsect.type == DUMMY || Link[i].newVolume /Link[i].newFlow < 10.0)
-	{
-			Link[i].newTemp = Node[j].newTemp;
-		return;
-	}
-
-	// --- get flow rates and evaporation loss
-	k = Link[i].subIndex;
-	barrels = Conduit[k].barrels;
-	qIn = fabs(Conduit[k].q1) * barrels;
-	qSeep = Conduit[k].seepLossRate * barrels;
-	vEvap = Conduit[k].evapLossRate * barrels * tStep;
-
-	// --- get starting and ending volumes
-	v1 = Link[i].oldVolume;
-	v2 = Link[i].newVolume;
-	vLosses = qSeep * tStep + vEvap;
-
-	// --- compute factor by which concentrations are increased due to
-	//     evaporation loss 
-	fEvap = 1.0;
-	if (vEvap > 0.0 && v1 > ZeroVolume) fEvap += vEvap / v1;
-
-	// --- Steady Flow routing requires special treatment
-	if (RouteModel == SF)
-	{
-		findSFLinkTemp(i, qSeep, fEvap, tStep);
-		return;
-	}
-
-	// --- adjust inflow to compensate for volume change under Dynamic
-	//     Wave routing (which produces just a single (out)flow rate
-	//     for a conduit)
-	if (RouteModel == DW)
-	{
-		qIn = qIn + (v2 + vLosses - v1) / tStep;
-		qIn = MAX(qIn, 0.0);
-	}
-
-	// --- examine each pollutant
-	//for (p = 0; p < Nobjects[POLLUT]; p++)
-	//{
-		// --- start with temperature at start of time step
-		c1 = Link[i].oldTemp;
-
-		// --- update mass balance accounting for seepage loss
-		massbal_addSeepageLossT(qSeep * c1);
-
-		// --- increase concen. by evaporation factor
-		c1 *= fEvap;
-			// it has been observed that at low flow rates the model may become unstable, therefore 0.02 L/s is a boundary
-			if (Link[i].newFlow * UCF(FLOW)  > 0.02) 
-		{
-				// --- adjust temperature by heat exchange processes
-					c2 = getReactedTemp(c1, i, tStep, month, day, hour);
-		}
-		else
-			c2 = NAN;
-
-		// --- mix resulting contents with inflow from upstream node
-		if (!isnan(Node[j].newTemp)) { // do not consider NaN values
-			wIn = Node[j].newTemp * qIn;
-			c2 = getMixedTemp(c2, v1, wIn, qIn, tStep);
-		}
-
-		// --- set concen. to zero if remaining volume is negligible
-		if (v2 < ZeroVolume)
-		{
-			massbal_addToFinalStorageT(c2 * v2);
-
-			// set temperature to NaN, because 0 is a valid temperatur value
-				c2 = NAN;
-			//else
-			//	c2 = 0.0;
-		}
-
-				// --- assign new temperature to link
-		Link[i].newTemp = c2;
-	//}
-}
-
-//=============================================================================
-
-void findLinkTemps(int i, double tStep, double airt, double soilt)
 //
 //  Input:   i = link index
 //           tStep = routing time step (sec)
@@ -448,29 +350,153 @@ void findLinkTemps(int i, double tStep, double airt, double soilt)
 		qIn = MAX(qIn, 0.0);
 	}
 
+	// --- examine each pollutant
+	//for (p = 0; p < Nobjects[POLLUT]; p++)
+	//{
+		// --- start with temperature at start of time step
+	c1 = Link[i].oldTemp;
+	if (!isnan(c1)) {
+		// --- update mass balance accounting for seepage loss
+		massbal_addSeepageLossT(qSeep * c1);
+
+		// --- increase concen. by evaporation factor
+		c1 *= fEvap;
+		// it has been observed that at low flow rates the model may become unstable, therefore 0.02 L/s is a boundary
+	//	if (Link[i].newFlow * UCF(FLOW)  > 0.02) 
+	//{
+			// --- adjust temperature by heat exchange processes
+		c2 = getReactedTemp(c1, i, tStep, month, day, hour);
+		// --- mix resulting contents with inflow from upstream node
+		if (!isnan(Node[j].newTemp)) { // do not consider NaN values
+			wIn = Node[j].newTemp * qIn;
+			c2 = getMixedTemp(c2, v1, wIn, qIn, tStep);
+		}
+	}
+	else{
+		if (!isnan(Node[j].newTemp)) {
+			c2 = Node[j].newTemp;
+		}
+		else c2 = NAN;
+    }
+		// --- mix resulting contents with inflow from upstream node
+		//if (!isnan(Node[j].newTemp)) { // do not consider NaN values
+		//	wIn = Node[j].newTemp * qIn;
+		//	c2 = getMixedTemp(c2, v1, wIn, qIn, tStep);
+		//}
+
+		// --- set concen. to zero if remaining volume is negligible
+		if (v2 < ZeroVolume)
+		{
+			massbal_addToFinalStorageT(c2 * v2);
+
+			// set temperature to NaN, because 0 is a valid temperatur value
+				c2 =- NAN;
+			//else
+			//	c2 = 0.0;
+		}
+
+				// --- assign new temperature to link
+		Link[i].newTemp = c2;
+	//}
+}
+
+//=============================================================================
+
+void findLinkTemps(int i, double tStep, double airt, double soilt)
+//
+//  Input:   i = link index
+//           tStep = routing time step (sec)
+//  Output:  none
+//  Purpose: finds new temperature in a link at end of the current time step.
+//
+{
+	int    j,             // upstream node index
+		k;             // conduit index
+	double wIn,           // temperature mass inflow rate 
+		qIn,              // inflow rate (cfs)
+		qSeep,            // rate of seepage loss (cfs)
+		v1,               // link volume at start of time step (ft3)
+		v2,               // link volume at end of time step (ft3)
+		c1,               // current temperature within link 
+		c2,               // new temperature within link 
+		vEvap,            // volume lost to evaporation (ft3)
+		vLosses,          // evap. + seepage volume loss (ft3)
+		fEvap,            // evaporation concentration factor
+		barrels;          // number of barrels in conduit
+
+ // --- identify index of upstream node
+	j = Link[i].node1;
+	if (Link[i].newFlow < 0.0) j = Link[i].node2;
+
+	// --- link temperature is that of upstream node when
+	//     link is not a conduit or is a dummy link or retention time less than 10secs
+	if (Link[i].type != CONDUIT || Link[i].xsect.type == DUMMY || Link[i].newVolume / Link[i].newFlow < 10.0)
+	{
+		//fprintf(stdout, "ret time = %g\n", Link[i].newVolume / Link[i].newFlow);
+		Link[i].newTemp = Node[j].newTemp;
+		return;
+	}
+		//fprintf(stdout, "START N %s %s %g %g %d\n", Node[Link[i].node1].ID, Node[Link[i].node2].ID, Node[Link[i].node1].newTemp, Node[Link[i].node2].newTemp,j);
+	// --- get flow rates and evaporation loss
+	k = Link[i].subIndex;
+	barrels = Conduit[k].barrels;
+	qIn = fabs(Conduit[k].q1) * barrels;
+	qSeep = Conduit[k].seepLossRate * barrels;
+	vEvap = Conduit[k].evapLossRate * barrels * tStep;
+
+	// --- get starting and ending volumes
+	v1 = Link[i].oldVolume;
+	v2 = Link[i].newVolume;
+	vLosses = qSeep * tStep + vEvap;
+
+	// --- compute factor by which concentrations are increased due to
+	//     evaporation loss 
+	fEvap = 1.0;
+	if (vEvap > 0.0 && v1 > ZeroVolume) fEvap += vEvap / v1;
+
+	// --- Steady Flow routing requires special treatment
+	if (RouteModel == SF)
+	{
+		findSFLinkTemp(i, qSeep, fEvap, tStep);
+		return;
+	}
+
+	// --- adjust inflow to compensate for volume change under Dynamic
+	//     Wave routing (which produces just a single (out)flow rate
+	//     for a conduit)
+	if (RouteModel == DW)
+	{
+		qIn = qIn + (v2 + vLosses - v1) / tStep;
+		qIn = MAX(qIn, 0.0);
+	}
+
 	//{
 		// --- start with concen. at start of time step
 	c1 = Link[i].oldTemp;
-
+	if(!isnan(c1)) {
 	// --- update mass balance accounting for seepage loss
 	massbal_addSeepageLossT(qSeep * c1);
 
 	// --- increase concen. by evaporation factor
 	c1 *= fEvap;
 		// it has been observed that at low flow rates the model may become unstable, therefore 0.02 L/s is a boundary
-		if (Link[i].newFlow * UCF(FLOW)  > 0.02) 
-	{
+		//if (Link[i].newFlow * UCF(FLOW)  > 0.02) 
 			// --- adjust temperature by heat exchange processes
+			//fprintf(stdout, "inside\n");
 			c2 = getReactedTemps(c1, i, tStep, airt, soilt);
+			// --- mix resulting contents with inflow from upstream node
+			if (!isnan(Node[j].newTemp)) { // do not consider NaN values
+				wIn = Node[j].newTemp * qIn;
+				c2 = getMixedTemp(c2, v1, wIn, qIn, tStep);
+			}
 	}
-	else
-		c2 = NAN;
+	else{
+		if (!isnan(Node[j].newTemp)) {
+			c2 = Node[j].newTemp;
+		}
+		else c2 = NAN;
+	}
 
-	// --- mix resulting contents with inflow from upstream node
-	if (!isnan(Node[j].newTemp)) { // do not consider NaN values
-		wIn = Node[j].newTemp * qIn;
-		c2 = getMixedTemp(c2, v1, wIn, qIn, tStep);
-	}
 
 	// --- set temperature to soil temperature if remaining volume is negligible
 	if (v2 < ZeroVolume)
@@ -478,9 +504,9 @@ void findLinkTemps(int i, double tStep, double airt, double soilt)
 		massbal_addToFinalStorageT(c2 * v2);
 
 		// set temperature to NaN, because 0 is a valid temperatur value
-		c2 = NAN;
+		c2 =- NAN;
 	}
-
+	//fprintf(stdout, "C2 %g %g\n", c2, v2);
 	// --- assign new concen. to link
 	Link[i].newTemp = c2;
 	//}

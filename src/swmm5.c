@@ -253,6 +253,7 @@ int DLLEXPORT  swmm_run(char* f1, char* f2, char* f3)
             writecon("\n o  Simulating day: 0     hour:  0");
             do
             {
+               // fprintf(stdout, "********NEW TIMESTEP*****************************");
                 swmm_step(&elapsedTime);
                 newHour = (long)(elapsedTime * 24.0);
                 if ( newHour > oldHour )
