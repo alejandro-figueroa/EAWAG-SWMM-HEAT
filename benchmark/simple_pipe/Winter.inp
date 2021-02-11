@@ -1,0 +1,124 @@
+[TITLE]															
+;;Project Title/Notes															
+															
+[OPTIONS]															
+;;Option             Value															
+FLOW_UNITS           LPS															
+INFILTRATION         HORTON															
+FLOW_ROUTING         DYNWAVE															
+LINK_OFFSETS         DEPTH															
+MIN_SLOPE            0															
+ALLOW_PONDING        NO															
+SKIP_STEADY_STATE    NO															
+															
+START_DATE           03/30/2019															
+START_TIME           00:00:00															
+REPORT_START_DATE    04/01/2019															
+REPORT_START_TIME    00:00:00															
+END_DATE             04/04/2019															
+END_TIME             08:20:00															
+SWEEP_START          01/01															
+SWEEP_END            01/31															
+DRY_DAYS             0															
+REPORT_STEP          00:01:00															
+WET_STEP             00:00:15															
+DRY_STEP             00:01:00															
+ROUTING_STEP         0:00:10 													
+															
+INERTIAL_DAMPING     PARTIAL															
+NORMAL_FLOW_LIMITED  BOTH															
+FORCE_MAIN_EQUATION  H-W															
+VARIABLE_STEP        0.75															
+LENGTHENING_STEP     0															
+MIN_SURFAREA         12.566															
+MAX_TRIALS           8															
+HEAD_TOLERANCE       0.005															
+SYS_FLOW_TOL         5															
+LAT_FLOW_TOL         5															
+MINIMUM_STEP         0.5															
+THREADS              1															
+															
+TEMP_MODEL           1															
+DENSITY              1000.0															
+SPEC_HEAT_CAPACITY   4190															
+HUMIDITY             0.9															
+EXT_UNIT             T	
+GLOBTPAT             1
+ASCII_OUT            1													
+															
+[EVAPORATION]															
+;;Data Source    Parameters															
+;;-------------- ----------------															
+CONSTANT         0.0															
+DRY_ONLY         NO															
+															
+[JUNCTIONS]															
+;;Name           Elevation  MaxDepth   InitDepth  SurDepth   Aponded   															
+;;-------------- ---------- ---------- ---------- ---------- ----------															
+591             520.6865    0.7          0.01        0          0           															
+															
+[OUTFALLS]															
+;;Name           Elevation  Type       Stage Data       Gated    Route To        															
+;;-------------- ---------- ---------- ---------------- -------- ----------------															
+Out              510.6865          FREE                        NO                       															
+															
+[CONDUITS]															
+;;Name	From Node	To Node	Length	Roughness  InOffset	OutOffset	InitFlow	MaxFlow	Thickness	k_Pipe	k_Soil	specHcSoil	densitySoil	AirPattern	SoilPattern	thermalEnergy
+;;--------------	----------------	----------------	----------	---------- ----------	----------	----------	----------	----------	----------	----------	----------	----------	----------	----------	----------
+Out_link	        591	Out	500	0.0117647	0	0	0	0	0.085	2.50	3.45	1500	2200	"A_GN"	"S_GN_3.0"	
+															
+[XSECTIONS]															
+;;Link           Shape        Geom1            Geom2      Geom3      Geom4      Barrels    Culvert   															
+;;-------------- ------------ ---------------- ---------- ---------- ---------- ---------- ----------	                  															
+Out_link          CIRCULAR     0.7              0          0          0          1                    															
+
+[WTEMPERATURE]																
+;;Name           Units  Crain      Cgw        Crdii      Kdecay         Cdwf       Cinit     																
+;;-------------- ------ ---------- ---------- ---------- ----------  ---------- ----------																
+WTEMPERATURE      CELSIUS 0.0        0.0        0.0        0.0              0         0         					
+
+													
+[INFLOWS]															
+;;Node           Constituent      Time Series      Type     Mfactor  Sfactor  Baseline Pattern															
+;;-------------- ---------------- ---------------- -------- -------- -------- -------- --------															
+591             FLOW             Val_FlowUp_SWMM  FLOW           1.0      1.0              															
+591	         WTEMPERATURE	  Val_TempUp_SWMM  WTEMPERATURE	  1.0      1.0											
+															
+[TIMESERIES]															
+;;Name           Date       Time       Value     															
+;;-------------- ---------- ---------- ----------					
+Val_FlowUp_SWMM              FILE "Flow_Sens.txt"	
+;
+Val_TempUp_SWMM    FILE "Temp_Sens.txt"															
+														
+															
+[PATTERNS]															
+;;Name           Type       Multipliers															
+;;-------------- ---------- -----------															
+; refine this according to depth															
+S_GN_3.0         DAILY    9.0 9.0 9.0 9.0 9.0 9.0 9.0													
+;															
+A_GN             DAILY    12.0 12.0 12.0 12.0 12.0 12.0 12.0														
+;															
+															
+[REPORT]															
+;;Reporting Options															
+SUBCATCHMENTS ALL															
+NODES ALL															
+LINKS ALL															
+															
+[TAGS]															
+															
+[MAP]															
+DIMENSIONS 0.000 0.000 10000.000 10000.000															
+Units      None															
+															
+[COORDINATES]															
+;;Node           X-Coord            Y-Coord           															
+;;-------------- ------------------ ------------------															
+591            3473.853           3895.411              															
+Out              1766.275           4855.923          															
+															
+[VERTICES]															
+;;Link           X-Coord            Y-Coord           															
+;;-------------- ------------------ ------------------															

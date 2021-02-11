@@ -119,7 +119,6 @@ int routing_open()
     /* START modification by Alejandro Figueroa | EAWAG */
     if (Fhotstart1.mode == NO_FILE) {
         qualrout_init();
-        //if (strcmp(QualUnitsWords[Temperature.units], "CELSIUS") == 0 && TempModel.active == 1)
         if (TempModel.active == 1) temprout_init();
     }
     /* END modification by Alejandro Figueroa | EAWAG */
@@ -558,6 +557,7 @@ void addDryWeatherInflows(DateTime currentDate)
         {
             if ( inflow->param == -10 )
             {
+
                 w = q * inflow_getDwfInflow(inflow, month, day, hour);
                 Node[j].newTemp += w;
                 massbal_addInflowTemp(DRY_WEATHER_INFLOW, w);

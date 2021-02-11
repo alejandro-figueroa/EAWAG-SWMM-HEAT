@@ -567,7 +567,7 @@ typedef struct
    double      hrt;               // hydraulic residence time (sec)
    double      evapLoss;          // evaporation loss (ft3)
    double      exfilLoss;         // exfiltration loss (ft3)
-   /* START modification by Peter Schlagbauer | TUGraz */
+   /* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
    double      thickness;         // wall thickness (ft)
    double      kWall;             // thermal conductivity pipe (W/m.K)
    double      kSoil;             // thermal conductivity soil (W/m.K)
@@ -577,7 +577,7 @@ typedef struct
    double      airPat;            // insewer-air pattern
    double      soilPat;           // soil pattern
    double      area;              // top area of flow surface at each time step (ft)
-   /* END modification by Peter Schlagbauer | TUGraz */
+   /* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 }  TStorage;
 
 //--------------------
@@ -1130,8 +1130,7 @@ typedef struct
    int           Precision;       // number of decimal places when reported
 }  TRptField;
 
-/* START modification by Alejandro Figueroa | EAWAG */
-/* START modification by Peter Schlagbauer | TUGraz */
+/* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 //-------------------
 // TEMPERATURE Model
 //-------------------
@@ -1145,8 +1144,7 @@ typedef struct
 	char          extUnit;
     int         GTPattern;
 }  TTempModel;
-/* END modification by Peter Schlagbauer | TUGraz */
-/* END modification by Alejandro Figueroa | EAWAG */
+/* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 
 
 #endif //OBJECTS_H

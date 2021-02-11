@@ -165,9 +165,9 @@
       MG,                              // Milligrams / L
       UG,                              // Micrograms / L
       COUNT,						   // Counts / L
-	  /* START modification by Peter Schlagbauer | TUGraz */
+	  /* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 	  CELSIUS};						   // °C Temperature
-	  /* END modification by Peter Schlagbauer | TUGraz */
+	  /* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 
 //--------------------------------------
 // Quantities requiring unit conversions
@@ -494,13 +494,11 @@ enum  CompatibilityType {
     /* END modification by Alejandro Figueroa | EAWAG */
     SYS_FLOW_TOL, LAT_FLOW_TOL, IGNORE_RDII,
     MIN_ROUTE_STEP, NUM_THREADS, SURCHARGE_METHOD,	                  //(5.1.013)
-    /* START modification by Alejandro Figueroa | EAWAG */
-	  /* START modification by Peter Schlagbauer | TUGraz */
+	  /* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 	  TEMP_MODEL,		 DENSITY,			 SPEC_HEAT_CAPACITY,
       HUMIDITY, EXT_UNIT, GLOBTPAT, ASCII_OUT, 
 	  //UA, EXT_UNIT
-	  /* END modification by Peter Schlagbauer | TUGraz */
-    /* END modification by Alejandro Figueroa | EAWAG */
+	  /* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 	  };    
 
 enum  NoYesType {

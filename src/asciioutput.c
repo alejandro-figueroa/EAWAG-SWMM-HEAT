@@ -154,45 +154,11 @@ int output_open_ascii()
         + MAX_SYS_RESULTS * sizeof(REAL4);
     Nperiods = 0;
 
-    //SubcatchResults = NULL;
-    //NodeResults = NULL;
-    //LinkResults = NULL;
-    //SubcatchResults = (REAL4 *) calloc(NumSubcatchVars, sizeof(REAL4));
-    //NodeResults = (REAL4 *) calloc(NumNodeVars, sizeof(REAL4));
-    //LinkResults = (REAL4 *) calloc(NumLinkVars, sizeof(REAL4));
-    //if ( !SubcatchResults || !NodeResults || !LinkResults )
-    //{
-    //    report_writeErrorMsg(ERR_MEMORY, "");
-    //    return ErrorCode;
-    //}
-
-    // --- allocate memory to store average node & link results per period     //(5.1.013)
-    //AvgNodeResults = NULL;                                                     //
-    //AvgLinkResults = NULL;                                                     //
-    //if ( RptFlags.averages && !output_openAvgResults() )                       //
-    //{                                                                          //
-    //    report_writeErrorMsg(ERR_MEMORY, "");                                  //
-    //    return ErrorCode;                                                      //
-    //}                                                                          //
 
     fseek(Foutasciih.file, 0, SEEK_SET);
     fprintf(Foutasciih.file, "MAGICNUMBER, VERSION, FLOW_UNITS, NUMSUBCATCH, NUMNODES, NUMLINKS, NUMPOLLUTS\n");
     fprintf(Foutasciih.file, "%d %d %d %d %d %d %d\n", MAGICNUMBER, VERSION, FlowUnits, NumSubcatch, NumNodes, NumLinks, \
         NumPolluts, TempModel.active);
-    //k = MAGICNUMBER;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);   // Magic number
-    //k = VERSION;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);   // Version number
-    //k = FlowUnits;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);   // Flow units
-    //k = NumSubcatch;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);   // # subcatchments
-    //k = NumNodes;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);   // # nodes
-    //k = NumLinks;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);   // # links
-    //k = NumPolluts;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);   // # pollutants
 
     // --- save ID names of subcatchments, nodes, links, & pollutants 
     IDStartPos = ftell(Foutasciih.file);
@@ -227,8 +193,6 @@ int output_open_ascii()
     for (j = 0; j < NumPolluts; j++)
     {
         fprintf(Foutasciih.file, "%d ", Pollut[j].units);
-        //k = Pollut[j].units;
-        //fwrite(&k, sizeof(INT4), 1, Fout.file);
     }
 
     if (TempModel.active == 1)
@@ -246,58 +210,27 @@ int output_open_ascii()
     // --- save subcatchment area
     fprintf(Foutasciih.file, "SUBCATCHMENT, INPUT_AREA\n");
     fprintf(Foutasciih.file, "%d %d ", 1, INPUT_AREA);
-    //k = 1;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = INPUT_AREA;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
     for (j = 0; j < Nobjects[SUBCATCH]; j++)
     {
         if (!Subcatch[j].rptFlag) continue;
         fprintf(Foutasciih.file, "%e ", (REAL4)(Subcatch[j].area * UCF(LANDAREA)));
-        //SubcatchResults[0] = (REAL4)(Subcatch[j].area * UCF(LANDAREA));
-        //fwrite(&SubcatchResults[0], sizeof(REAL4), 1, Fout.file);
     }
     fprintf(Foutascii.file, "\n");
 
     // --- save node type, invert, & max. depth
     fprintf(Foutasciih.file, "NODE, INPUT_TYPE_CODE, INPUT_INVERT, INPUT_MAX_DEPTH\n");
     fprintf(Foutasciih.file, "%d %d %d %d\n", 3, INPUT_TYPE_CODE, INPUT_INVERT, INPUT_MAX_DEPTH);
-    //k = 3;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = INPUT_TYPE_CODE;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = INPUT_INVERT;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = INPUT_MAX_DEPTH;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
     for (j = 0; j < Nobjects[NODE]; j++)
     {
         if (!Node[j].rptFlag) continue;
         fprintf(Foutasciih.file, "%d %e %e\n", Node[j].type, (REAL4)(Node[j].invertElev * UCF(LENGTH)), \
             (REAL4)(Node[j].fullDepth * UCF(LENGTH)));
-        //k = Node[j].type;
-        //NodeResults[0] = (REAL4)(Node[j].invertElev * UCF(LENGTH));
-        //NodeResults[1] = (REAL4)(Node[j].fullDepth * UCF(LENGTH));
-        //fwrite(&k, sizeof(INT4), 1, Fout.file);
-        //fwrite(NodeResults, sizeof(REAL4), 2, Fout.file);
     }
 
     // --- save link type, offsets, max. depth, & length
     fprintf(Foutasciih.file, "LINK, INPUT_TYPE_CODE, INPUT_OFFSET, INPUT_OFFSET, INPUT_MAX_DEPTH, INPUT_LENGTH\n");
     fprintf(Foutasciih.file, "%d %d %d %d %d %d\n", 5, INPUT_TYPE_CODE, INPUT_OFFSET, INPUT_OFFSET, INPUT_MAX_DEPTH, \
         INPUT_LENGTH);
-    //k = 5;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = INPUT_TYPE_CODE;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = INPUT_OFFSET;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = INPUT_OFFSET;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = INPUT_MAX_DEPTH;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = INPUT_LENGTH;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
 
     for (j = 0; j < Nobjects[LINK]; j++)
     {
@@ -327,8 +260,6 @@ int output_open_ascii()
             else LinkResults[3] = 0.0f;
         }
         fprintf(Foutasciih.file, "%d %e %e %e %e\n", k, LinkResults[0], LinkResults[1], LinkResults[2], LinkResults[3]);
-        //fwrite(&k, sizeof(INT4), 1, Fout.file);
-        //fwrite(LinkResults, sizeof(REAL4), 4, Fout.file);
     }
 
     // --- save number & codes of subcatchment result variables
@@ -336,30 +267,10 @@ int output_open_ascii()
 SUBCATCH_INFIL, SUBCATCH_RUNOFF, SUBCATCH_GW_FLOW, SUBCATCH_GW_ELEV, SUBCATCH_SOIL_MOIST\n");
     fprintf(Foutasciih.file, "%d %d %d %d %d %d %d %d %d\n", NumSubcatchVars, SUBCATCH_RAINFALL, SUBCATCH_SNOWDEPTH, SUBCATCH_EVAP, \
         SUBCATCH_INFIL, SUBCATCH_RUNOFF, SUBCATCH_GW_FLOW, SUBCATCH_GW_ELEV, SUBCATCH_SOIL_MOIST);
-    //k = NumSubcatchVars;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = SUBCATCH_RAINFALL;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = SUBCATCH_SNOWDEPTH;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = SUBCATCH_EVAP;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = SUBCATCH_INFIL;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = SUBCATCH_RUNOFF;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = SUBCATCH_GW_FLOW;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = SUBCATCH_GW_ELEV;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = SUBCATCH_SOIL_MOIST;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
     fprintf(Foutasciih.file, "SUBCATCH_WASHOFF\n");
     for (j = 0; j < NumPolluts; j++)
     {
         fprintf(Foutasciih.file, " %d", SUBCATCH_WASHOFF + j);
-        //k = SUBCATCH_WASHOFF + j;
-        //fwrite(&k, sizeof(INT4), 1, Fout.file);
     }
     fprintf(Foutasciih.file, "\n");
 
@@ -368,26 +279,10 @@ SUBCATCH_INFIL, SUBCATCH_RUNOFF, SUBCATCH_GW_FLOW, SUBCATCH_GW_ELEV, SUBCATCH_SO
 NODE_OVERFLOW\n");
     fprintf(Foutasciih.file, "%d %d %d %d %d %d %d\n", NumNodeVars, NODE_DEPTH, NODE_HEAD, NODE_VOLUME, NODE_LATFLOW, NODE_INFLOW, \
         NODE_OVERFLOW);
-    //k = NumNodeVars;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = NODE_DEPTH;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = NODE_HEAD;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = NODE_VOLUME;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = NODE_LATFLOW;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = NODE_INFLOW;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = NODE_OVERFLOW;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
     fprintf(Foutasciih.file, "NODE_QUAL\n");
     for (j = 0; j < NumPolluts; j++)
     {
         fprintf(Foutasciih.file, "%d ", NODE_QUAL + j);
-        //k = NODE_QUAL + j;
-        //fwrite(&k, sizeof(INT4), 1, Fout.file);
     }
     fprintf(Foutasciih.file, "\n");
     fprintf(Foutasciih.file, "NODE_WTEMP\n");
@@ -398,24 +293,10 @@ NODE_OVERFLOW\n");
     // --- save number & codes of link result variables
     fprintf(Foutasciih.file, "NUMLINKVARS, LINK_FLOW, LINK_DEPTH, LINK_VELOCITY, LINK_VOLUME, LINK_CAPACITY, LINK_AIR_VELOCITY\n");
     fprintf(Foutasciih.file, "%d %d %d %d %d %d %d\n", NumLinkVars, LINK_FLOW, LINK_DEPTH, LINK_VELOCITY, LINK_VOLUME, LINK_CAPACITY, LINK_AIR_VELOCITY);
-    //k = NumLinkVars;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = LINK_FLOW;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = LINK_DEPTH;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = LINK_VELOCITY;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = LINK_VOLUME;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = LINK_CAPACITY;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
     fprintf(Foutasciih.file, "LINK_QUAL\n");
     for (j = 0; j < NumPolluts; j++)
     {
         fprintf(Foutasciih.file, "%d ", LINK_QUAL + j);
-        //k = LINK_QUAL + j;
-        //fwrite(&k, sizeof(INT4), 1, Fout.file);
     }
     fprintf(Foutasciih.file, "\n");
     fprintf(Foutasciih.file, "LINK_WTEMP\n");
@@ -427,9 +308,6 @@ NODE_OVERFLOW\n");
     // --- save number & codes of system result variables
     fprintf(Foutasciih.file, "MAX_SYS_RESULTS\n");
     fprintf(Foutasciih.file, "%d\n", MAX_SYS_RESULTS);
-    //k = MAX_SYS_RESULTS;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //for (k=0; k<MAX_SYS_RESULTS; k++) fwrite(&k, sizeof(INT4), 1, Fout.file);
     for (k = 0; k < MAX_SYS_RESULTS; k++)
     {
         fprintf(Foutasciih.file, "%d ", k);
@@ -448,16 +326,11 @@ NODE_OVERFLOW\n");
     }
     fprintf(Foutasciih.file, "STARTING_REPORT_DATE, REPORT_STEP\n");
     fprintf(Foutasciih.file, "%e ", z);
-    //fwrite(&z, sizeof(REAL8), 1, Fout.file);
     if ( fprintf(Foutasciih.file, "%d\n", ReportStep) < 0)
-    //k = ReportStep;
-    //if ( fwrite(&k, sizeof(INT4), 1, Fout.file) < 1)
     {
         report_writeErrorMsg(ERR_OUT_WRITE, "");
         return ErrorCode;
     }
-    //OutputStartPos = ftell(Fout.file);
-    //if ( Fout.mode == SCRATCH_FILE ) output_checkFileSize();
     return ErrorCode;
 }
 
@@ -471,7 +344,6 @@ void output_openOutFile_ascii()
 //
 {
     // --- close output file if already opened
-    //Foutascii.file = Foutascii.file;
     if (Foutascii.file != NULL) fclose(Foutascii.file);
 
     // --- else if file name supplied then set file mode to SAVE
@@ -483,7 +355,6 @@ void output_openOutFile_ascii()
         Foutascii.mode = SCRATCH_FILE;
         getTempFileNameAscii(Foutascii.name);
     }
-    //fprintf(stdout, "name file %s\n", Foutascii.name);
     // --- try to open the file
     if ((Foutascii.file = fopen(Foutascii.name, "w+b")) == NULL)
     {
@@ -502,7 +373,6 @@ void output_openOutFile_asciih()
 //
 {
     // --- close output file if already opened
-    //Foutascii.file = Foutascii.file;
     if (Foutasciih.file != NULL) fclose(Foutasciih.file);
 
     // --- else if file name supplied then set file mode to SAVE
@@ -514,7 +384,6 @@ void output_openOutFile_asciih()
         Foutasciih.mode = SCRATCH_FILE;
         getTempFileNameAsciih(Foutasciih.name);
     }
-    //fprintf(stdout, "name file %s\n", Foutascii.name);
     // --- try to open the file
     if ((Foutasciih.file = fopen(Foutasciih.name, "w+b")) == NULL)
     {
@@ -542,10 +411,7 @@ void output_saveResults_ascii(double reportTime)
     for (i=0; i<MAX_SYS_RESULTS; i++) SysResults[i] = 0.0f;
 
     // --- save date corresponding to this elapsed reporting time
-    //fprintf(Foutascii.file, "REPORTING_TIME\n");
     fprintf(Foutascii.file, "%21.16e ", reportDate);
-    //date = reportDate;
-    //fwrite(&date, sizeof(REAL8), 1, Fout.file);
 
     // --- save subcatchment results
     if (Nobjects[SUBCATCH] > 0)
@@ -563,30 +429,6 @@ void output_saveResults_ascii(double reportTime)
             output_saveLinkResults_ascii(reportTime, Foutascii.file);
     }
     fprintf(Foutascii.file, "\n");
-    // --- update & save system-wide flows 
-//    SysResults[SYS_FLOODING] = (REAL4)(StepFlowTotals.flooding * UCF(FLOW));
-//    SysResults[SYS_OUTFLOW] = (REAL4)(StepFlowTotals.outflow * UCF(FLOW));
-//    SysResults[SYS_DWFLOW] = (REAL4)(StepFlowTotals.dwInflow * UCF(FLOW));
-//    SysResults[SYS_GWFLOW] = (REAL4)(StepFlowTotals.gwInflow * UCF(FLOW));
-//    SysResults[SYS_IIFLOW] = (REAL4)(StepFlowTotals.iiInflow * UCF(FLOW));
-//    SysResults[SYS_EXFLOW] = (REAL4)(StepFlowTotals.exInflow * UCF(FLOW));
-//    SysResults[SYS_INFLOW] = SysResults[SYS_RUNOFF] +
-//                             SysResults[SYS_DWFLOW] +
-//                             SysResults[SYS_GWFLOW] +
-//                             SysResults[SYS_IIFLOW] +
-//                             SysResults[SYS_EXFLOW];
-//    fprintf(Foutascii.file, "SysResults[SYS_FLOODING], SysResults[SYS_OUTFLOW], SysResults[SYS_DWFLOW], SysResults[SYS_GWFLOW], \
-//SysResults[SYS_IIFLOW], SysResults[SYS_EXFLOW], SysResults[SYS_INFLOW], SysResults[SYS_RUNOFF], \
-//SysResults[SYS_DWFLOW], SysResults[SYS_GWFLOW], SysResults[SYS_IIFLOW], SysResults[SYS_EXFLOW]\n");
-//    fprintf(Foutascii.file, "%e %e %e %e %e %e %e %e %e %e %e %e\n", SysResults[SYS_FLOODING], SysResults[SYS_OUTFLOW], SysResults[SYS_DWFLOW], SysResults[SYS_GWFLOW], \
-//        SysResults[SYS_IIFLOW], SysResults[SYS_EXFLOW], SysResults[SYS_INFLOW], SysResults[SYS_RUNOFF], \
-//        SysResults[SYS_DWFLOW], SysResults[SYS_GWFLOW], SysResults[SYS_IIFLOW], SysResults[SYS_EXFLOW]);
-    //fwrite(SysResults, sizeof(REAL4), MAX_SYS_RESULTS, Fout.file);
-
-    // --- save outfall flows to interface file if called for
-    //if ( Foutflows.mode == SAVE_FILE && !IgnoreRouting ) 
-    //    iface_saveOutletResults(reportDate, Foutflows.file);
-    //Nperiods++;
 }
 
 //=============================================================================
@@ -601,17 +443,8 @@ void output_end_ascii()
     //INT4 k;
     fprintf(Foutasciih.file, "ID_START_POS, INPUT_START_POS, OUTPUT_START_POS\n");
     fprintf(Foutasciih.file, "%d %d %d\n", IDStartPos, InputStartPos, OutputStartPos);
-    //fwrite(&IDStartPos, sizeof(INT4), 1, Fout.file);
-    //fwrite(&InputStartPos, sizeof(INT4), 1, Fout.file);
-    //fwrite(&OutputStartPos, sizeof(INT4), 1, Fout.file);
     fprintf(Foutasciih.file, "NPERIODS, EROR_GETCODE\n");
     fprintf(Foutasciih.file, "%d %d\n", Nperiods, (INT4)error_getCode(ErrorCode));
-    //k = Nperiods;
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = (INT4)error_getCode(ErrorCode);
-    //fwrite(&k, sizeof(INT4), 1, Fout.file);
-    //k = MAGICNUMBER;
-    //if (fwrite(&k, sizeof(INT4), 1, Fout.file) < 1)
     if (fprintf(Foutasciih.file, "MAGICNUMBER %d\n", MAGICNUMBER) < 0)
     {
         report_writeErrorMsg(ERR_OUT_WRITE, "");
@@ -630,8 +463,6 @@ void output_saveID_ascii(char* id, FILE* file)
 {
     INT4 n = strlen(id);
     fprintf(file, "%d %s\n", n, id);
-    //fwrite(&n, sizeof(INT4), 1, file);
-    //fwrite(id, sizeof(char), n, file);
 }
 
 //=============================================================================
@@ -670,41 +501,8 @@ void output_saveSubcatchResults_ascii(double reportTime, FILE* file)
             {
                 fprintf(file, "%g ", SubcatchResults[k]);
             }
-        //fprintf(file, "\n");
-            //fwrite(SubcatchResults, sizeof(REAL4), NumSubcatchVars, file);
-
-        // --- update system-wide results
-    //    area = Subcatch[j].area * UCF(LANDAREA);
-    //    totalArea += (REAL4)area;
-    //    SysResults[SYS_RAINFALL] +=
-    //        (REAL4)(SubcatchResults[SUBCATCH_RAINFALL] * area);
-    //    SysResults[SYS_SNOWDEPTH] +=
-    //        (REAL4)(SubcatchResults[SUBCATCH_SNOWDEPTH] * area);
-    //    SysResults[SYS_EVAP] +=
-    //        (REAL4)(SubcatchResults[SUBCATCH_EVAP] * area);
-    //    if ( Subcatch[j].groundwater ) SysResults[SYS_EVAP] += 
-    //        (REAL4)(Subcatch[j].groundwater->evapLoss * UCF(EVAPRATE) * area);
-    //    SysResults[SYS_INFIL] +=
-    //        (REAL4)(SubcatchResults[SUBCATCH_INFIL] * area);
-    //    SysResults[SYS_RUNOFF] += (REAL4)SubcatchResults[SUBCATCH_RUNOFF];
+            fprintf(file, "%s ", Subcatch[j].ID);
     }
-
-    //// --- normalize system-wide results to catchment area
-    //if ( totalArea > 0.0 )
-    //{
-    //    SysResults[SYS_EVAP]      /= totalArea;
-    //    SysResults[SYS_RAINFALL]  /= totalArea;
-    //    SysResults[SYS_SNOWDEPTH] /= totalArea;
-    //    SysResults[SYS_INFIL]     /= totalArea;
-    //}
-
-    //// --- update system temperature and PET
-    //if ( UnitSystem == SI ) f = (5./9.) * (Temp.ta - 32.0);
-    //else f = Temp.ta;
-    //SysResults[SYS_TEMPERATURE] = (REAL4)f;
-    //f = Evap.rate * UCF(EVAPRATE);
-    //SysResults[SYS_PET] = (REAL4)f;
-
 }
 
 //=============================================================================
@@ -739,11 +537,6 @@ void output_saveNodeResults_ascii(double reportTime, FILE* file)
             fprintf(file, "%s ", Node[j].ID);
           //  fprintf(file, "\n");
         }
-            //fwrite(NodeResults, sizeof(REAL4), NumNodeVars, file);
-      //  stats_updateMaxNodeDepth(j, NodeResults[NODE_DEPTH]);
-
-        // --- update system-wide storage volume 
-       // SysResults[SYS_STORAGE] += NodeResults[NODE_VOLUME];
     }
 }
 
@@ -777,13 +570,7 @@ void output_saveLinkResults_ascii(double reportTime, FILE* file)
                 fprintf(file, "%g ", LinkResults[k]);
             }
             fprintf(file, "%s ", Link[j].ID);
-            //fprintf(file, "\n");
-            //fwrite(LinkResults, sizeof(REAL4), NumLinkVars, file);
         }
-
-        // --- update system-wide results
-        //z = ((1.0-f)*Link[j].oldVolume + f*Link[j].newVolume) * UCF(VOLUME);
-        //SysResults[SYS_STORAGE] += (REAL4)z;
     }
 }
 
@@ -807,16 +594,7 @@ void output_saveAvgResults_ascii(FILE* file)
         {
             fprintf(file, "%g ", NodeResults[k]);
         }
-        //fprintf(file, "\n");
-        //fwrite(NodeResults, sizeof(REAL4), NumNodeVars, file);
     }
-
-    // --- update each node's max depth and contribution to system storage
-    //for (i = 0; i < Nobjects[NODE]; i++)
-    //{
-    //    stats_updateMaxNodeDepth(i, Node[i].newDepth * UCF(LENGTH));
-    //    SysResults[SYS_STORAGE] += (REAL4)(Node[i].newVolume * UCF(VOLUME));
-    //}
 
     // --- examine each reportable link
     for (i = 0; i < NumLinks; i++)
@@ -828,20 +606,9 @@ void output_saveAvgResults_ascii(FILE* file)
         }
 
         // --- save average results to file
-        //fwrite(LinkResults, sizeof(REAL4), NumLinkVars, file);
         for (k = 0; k < NumLinkVars; k++)
         {
             fprintf(file, "%g ", LinkResults[k]);
         }
-        //fprintf(file, "\n");
     }
- 
-    // --- add each link's volume to total system storage
-    //for (i = 0; i < Nobjects[LINK]; i++)                                       //(5.1.014)
-    //{
-    //    SysResults[SYS_STORAGE] += (REAL4)(Link[i].newVolume * UCF(VOLUME));
-    //}
-
-    // --- re-initialize average results for all nodes and links
-    //output_initAvgResults();
 }

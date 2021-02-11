@@ -328,7 +328,7 @@ void  link_setParams(int j, int type, int n1, int n2, int k, double x[])
         Link[j].offset2      = x[3] / UCF(LENGTH);
         Link[j].q0           = x[4] / UCF(FLOW);
         Link[j].qLimit       = x[5] / UCF(FLOW);
-		/* START modification by Peter Schlagbauer | TUGraz */
+		/* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 		Conduit[k].thickness = x[6] / UCF(LENGTH);
 		Conduit[k].kPipe	 = x[7];
 		Conduit[k].kSoil     = x[8];
@@ -337,7 +337,7 @@ void  link_setParams(int j, int type, int n1, int n2, int k, double x[])
 		Conduit[k].airPat = x[11];
 		Conduit[k].soilPat = x[12];
 		Conduit[k].thermalEnergy = x[13];
-		/* END modification by Peter Schlagbauer | TUGraz */
+		/* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
         break;
 
       case PUMP:
@@ -1027,9 +1027,9 @@ int  conduit_readParams(int j, int k, char* tok[], int ntoks)
 //
 {
     int    n1, n2;
-	/* START modification by Peter Schlagbauer | TUGraz */
+	/* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 	double x[14];	// old: double x[6];
-	/* END modification by Peter Schlagbauer | TUGraz */
+	/* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
     char*  id;
 
     // --- check for valid ID and end node IDs
@@ -1068,7 +1068,7 @@ int  conduit_readParams(int j, int k, char* tok[], int ntoks)
         if ( !getDouble(tok[8], &x[5]) )
         return error_setInpError(ERR_NUMBER, tok[8]);
     }
-	/* START modification by Peter Schlagbauer | TUGraz */
+	/* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 	// --- parse Thickness code if present
 	x[6] = 0.0;
 	if (ntoks >= 10)
@@ -1131,7 +1131,7 @@ int  conduit_readParams(int j, int k, char* tok[], int ntoks)
 		if (!getDouble(tok[16], &x[13]))
 			return error_setInpError(ERR_NUMBER, tok[16]);
 	}
-	/* END modification by Peter Schlagbauer | TUGraz */
+	/* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
     // --- add parameters to data base
     Link[j].ID = id;
     link_setParams(j, CONDUIT, n1, n2, k, x);

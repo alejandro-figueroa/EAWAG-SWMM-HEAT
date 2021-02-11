@@ -97,12 +97,12 @@ char* OptionWords[]        = { w_FLOW_UNITS,        w_INFIL_MODEL,
                                w_SYS_FLOW_TOL,      w_LAT_FLOW_TOL,
                                w_IGNORE_RDII,       w_MIN_ROUTE_STEP,
                                w_NUM_THREADS,       w_SURCHARGE_METHOD,        //(5.1.013)
-			       /* START modification by Peter Schlagbauer | TUGraz */
+			       /* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 		       	               w_TEMP_MODEL,			   
 			                   w_DENSITY,			w_SPEC_HEAT_CAPACITY,
 			       //w_UA, w_EXT_UNIT,		
                                  w_HUMIDITY, w_EXT_UNIT, w_GLOBTPAT, w_ASCII_OUT,
-			       /* END modification by Peter Schlagbauer | TUGraz */
+			       /* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
                                NULL };
 char* OrificeTypeWords[]   = { w_SIDE, w_BOTTOM, NULL};
 char* OutfallTypeWords[]   = { w_FREE, w_NORMAL, w_FIXED, w_TIDAL,

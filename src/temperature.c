@@ -73,12 +73,8 @@ void    temprout_init()
 	{
 		isWet = (Node[i].newDepth > FUDGE);
 
-			//if (strcmp(QualUnitsWords[Temperature.units], "CELSIUS") == 0 && TempModel.active == 1)
 				c =- NAN; // set temperature to NaN, because 0 is a valid temperatur value
-			//else
-			//	c = 0.0;
 			if (isWet) c = WTemperature.initTemp;
-			// fprintf(stdout, "nodes %s %g %d %d\n", Node[i].ID, c, isWet, Nobjects[NODE]);
 			Node[i].oldTemp = c;
 			Node[i].newTemp = c;
 
@@ -98,7 +94,6 @@ void    temprout_init()
 		//	else
 		//		c = 0.0;
 			if (isWet) c = WTemperature.initTemp;
-			//fprintf(stdout, "Link %s %g %d %d\n", Link[i].ID, c, isWet, Nobjects[LINK]);
 			Link[i].oldTemp = c;
 			Link[i].newTemp = c;
 
@@ -127,7 +122,6 @@ void temprout_execute(double tStep)
 	int month = datetime_monthOfYear(currentDate) - 1;
 	int day   = datetime_dayOfWeek(currentDate) - 1;
     int hour  = datetime_hourOfDay(currentDate);
-	//fprintf(stdout, "NEW ITER\n");
 	if (TempModel.GTPattern == 1)
 	{
 		airt = inflow_getPatternFactor((int)Conduit[Link[0].subIndex].airPat, month, day, hour
@@ -196,7 +190,6 @@ double getMixedTemp(double c, double v1, double wIn, double qIn, double tStep)
 	double vIn, cIn, cMax;
 
 	// --- if no inflow then reactor temperature is unchanged
-	//fprintf(stdout, "QINNNNN = %g\n", qIn);
 	if (qIn <= ZERO) return c;
 	// --- compute temperature of any inflow
 	vIn = qIn * tStep;
@@ -206,7 +199,6 @@ double getMixedTemp(double c, double v1, double wIn, double qIn, double tStep)
 	cMax = MAX(c, cIn);
 
 	// --- mix inflow with current reactor temperature
-	//fprintf(stdout, "reaction %g %g %g %g\n", c, v1, wIn, vIn);
 	c = (c * v1 + wIn * tStep) / (v1 + vIn);
 	c = MIN(c, cMax);
 	c = MAX(c, 0.0);
@@ -244,13 +236,11 @@ void findLinkMassFlowT(int i, double tStep)
 				w = qLink * Link[i].oldTemp;
 				Node[j].newTemp += w;
 
-				//	fprintf(stdout, "links %s %g %g\n", Link[i].ID, Link[i].oldTemp, qLink * UCF(FLOW));
 			}
 			else
 			{
 				w = 0.0;
 			}
-			//fprintf(stdout, "node new temp %g %g %g\n", Link[i].oldTemp, Node[j].newTemp , Node[j].newTemp / qLink);
 			// --- update total temperature/heat transported by link
 		Link[i].totalLoadT += w * tStep;
 	//}
@@ -268,7 +258,6 @@ void findNodeTemp(int j)
 
 	// --- if there is flow into node then  = mass inflow/node flow
 	qNode = Node[j].inflow;
-	//fprintf(stdout, "node find  prev %s %g\n", Node[j].ID, Node[j].newTemp);
 	if (qNode > ZERO )
 	{
 
@@ -278,7 +267,6 @@ void findNodeTemp(int j)
 	else
 		Node[j].newTemp = -NAN;
 
-	//fprintf(stdout, "node find %s %g %g\n", Node[j].ID, Node[j].newTemp, qNode*UCF(FLOW));
 }
 
 //=============================================================================
@@ -350,9 +338,6 @@ void findLinkTemp(int i, double tStep, int month, int day, int hour)
 		qIn = MAX(qIn, 0.0);
 	}
 
-	// --- examine each pollutant
-	//for (p = 0; p < Nobjects[POLLUT]; p++)
-	//{
 		// --- start with temperature at start of time step
 	c1 = Link[i].oldTemp;
 	if (!isnan(c1)) {
@@ -361,9 +346,6 @@ void findLinkTemp(int i, double tStep, int month, int day, int hour)
 
 		// --- increase concen. by evaporation factor
 		c1 *= fEvap;
-		// it has been observed that at low flow rates the model may become unstable, therefore 0.02 L/s is a boundary
-	//	if (Link[i].newFlow * UCF(FLOW)  > 0.02) 
-	//{
 			// --- adjust temperature by heat exchange processes
 		c2 = getReactedTemp(c1, i, tStep, month, day, hour);
 		// --- mix resulting contents with inflow from upstream node
@@ -378,12 +360,6 @@ void findLinkTemp(int i, double tStep, int month, int day, int hour)
 		}
 		else c2 = NAN;
     }
-		// --- mix resulting contents with inflow from upstream node
-		//if (!isnan(Node[j].newTemp)) { // do not consider NaN values
-		//	wIn = Node[j].newTemp * qIn;
-		//	c2 = getMixedTemp(c2, v1, wIn, qIn, tStep);
-		//}
-
 		// --- set concen. to zero if remaining volume is negligible
 		if (v2 < ZeroVolume)
 		{
@@ -391,8 +367,6 @@ void findLinkTemp(int i, double tStep, int month, int day, int hour)
 
 			// set temperature to NaN, because 0 is a valid temperatur value
 				c2 =- NAN;
-			//else
-			//	c2 = 0.0;
 		}
 
 				// --- assign new temperature to link
@@ -432,11 +406,9 @@ void findLinkTemps(int i, double tStep, double airt, double soilt)
 	//     link is not a conduit or is a dummy link or retention time less than 10secs
 	if (Link[i].type != CONDUIT || Link[i].xsect.type == DUMMY || Link[i].newVolume / Link[i].newFlow < 10.0)
 	{
-		//fprintf(stdout, "ret time = %g\n", Link[i].newVolume / Link[i].newFlow);
 		Link[i].newTemp = Node[j].newTemp;
 		return;
 	}
-		//fprintf(stdout, "START N %s %s %g %g %d\n", Node[Link[i].node1].ID, Node[Link[i].node2].ID, Node[Link[i].node1].newTemp, Node[Link[i].node2].newTemp,j);
 	// --- get flow rates and evaporation loss
 	k = Link[i].subIndex;
 	barrels = Conduit[k].barrels;
@@ -479,8 +451,6 @@ void findLinkTemps(int i, double tStep, double airt, double soilt)
 
 	// --- increase concen. by evaporation factor
 	c1 *= fEvap;
-		// it has been observed that at low flow rates the model may become unstable, therefore 0.02 L/s is a boundary
-		//if (Link[i].newFlow * UCF(FLOW)  > 0.02) 
 			// --- adjust temperature by heat exchange processes
 			//fprintf(stdout, "inside\n");
 			c2 = getReactedTemps(c1, i, tStep, airt, soilt);
@@ -502,11 +472,9 @@ void findLinkTemps(int i, double tStep, double airt, double soilt)
 	if (v2 < ZeroVolume)
 	{
 		massbal_addToFinalStorageT(c2 * v2);
-
 		// set temperature to NaN, because 0 is a valid temperatur value
 		c2 =- NAN;
 	}
-	//fprintf(stdout, "C2 %g %g\n", c2, v2);
 	// --- assign new concen. to link
 	Link[i].newTemp = c2;
 	//}
@@ -524,7 +492,7 @@ void  findSFLinkTemp(int i, double qSeep, double fEvap, double tStep)
 //
 {
 	int j = Link[i].node1;
-	double c1, c2;
+	double c1;
 	//double lossRate;
 
 	// --- examine each pollutant
@@ -538,17 +506,7 @@ void  findSFLinkTemp(int i, double qSeep, double fEvap, double tStep)
 
 		// --- increase concen. by evaporation factor
 		c1 *= fEvap;
-
-		// --- apply first-order decay over travel time
-		c2 = c1;
-		//if (Pollut[p].kDecay > 0.0)
-		//{
-		//	c2 = c1 * exp(-Pollut[p].kDecay * tStep);
-		//	c2 = MAX(0.0, c2);
-		//	lossRate = (c1 - c2) * Link[i].newFlow;
-		//	massbal_addReactedMass(p, lossRate);
-		//}
-		Link[i].newTemp = c2;
+		Link[i].newTemp = c1;
 	//}
 }
 
@@ -579,10 +537,6 @@ void  findStorageTemp(int j, double tStep, int month, int day, int hour)
 	// -- for storage nodes
 	if (Node[j].type == STORAGE)
 	{
-		// --- update hydraulic residence time
-		//     (HRT can be used in treatment functions)
-		//updateHRTT(j, Node[j].oldVolume, qIn, tStep);
-
 		// --- get exfiltration rate and evaporation loss
 		k = Node[j].subIndex;
 		qExfil = Storage[k].exfilLoss / tStep;
@@ -648,9 +602,6 @@ void  findStorageTemps(int j, double tStep, double airt, double soilt)
 	// -- for storage nodes
 	if (Node[j].type == STORAGE)
 	{
-		// --- update hydraulic residence time
-		//     (HRT can be used in treatment functions)
-		//updateHRTT(j, Node[j].oldVolume, qIn, tStep);
 
 		// --- get exfiltration rate and evaporation loss
 		k = Node[j].subIndex;
@@ -662,10 +613,6 @@ void  findStorageTemps(int j, double tStep, double airt, double soilt)
 		//     dries out completely)
 		if (vEvap > 0.0 && v1 > ZeroVolume) fEvap += vEvap / v1;
 	}
-
-	// --- for each pollutant
-	//for (p = 0; p < Nobjects[POLLUT]; p++)
-	//{
 		// --- start with concen. at start of time step 
 	c1 = Node[j].oldTemp;
 
@@ -674,21 +621,8 @@ void  findStorageTemps(int j, double tStep, double airt, double soilt)
 
 	// --- increase concen. by evaporation factor
 	c1 *= fEvap;
-	/* START modification by Peter Schlagbauer | TUGraz */
-	//if (strcmp(QualUnitsWords[Pollut[p].units], "CELSIUS") == 0 && TempModel.active == 1 && c1 != 0.0 && !isnan(c1))
 	if (c1 != 0.0 && !isnan(c1))
 		c1 = getReactedTempStNodes(c1, j, tStep, airt, soilt);
-	//else
-	//{
-		// --- apply first order reaction only if no separate treatment function
-	//	if (Node[j].treatment == NULL ||
-	//		Node[j].treatment[p].equation == NULL)
-	//	{
-	//		c1 = getReactedQual(p, c1, v1, tStep);
-	//	}
-	//}
-	/* END modification by Peter Schlagbauer | TUGraz */
-
 	// --- mix resulting contents with inflow from all sources
 	//     (temporarily accumulated in Node[j].newTemp)
 	wIn = Node[j].newTemp;
@@ -700,7 +634,6 @@ void  findStorageTemps(int j, double tStep, double airt, double soilt)
 		massbal_addToFinalStorageT(c2 * Node[j].newVolume);
 		c2 = 0.0;
 	}
-
 	// --- assign new concen. to node
 	Node[j].newTemp = c2;
 }
@@ -779,8 +712,6 @@ double getReactedTemp(double oldTemp, int i, double tStep, int month, int day, i
 	deltaTs = soilTemp - oldTemp;
 
 	// calculate thermal resistivity for wastewater - air
-	//double deltaV = ABS(velocity - TempModel.ua);
-	//double deltaV = ABS(velocity - 0.004);
 	deltaV = sqrt(ABS(velocity * UCF(LENGTH) - windVel));
 
 	if (deltaV > 0.001) // if the relative velocity is lower than 1 mm/s the thermal resistivity is 0 (prevent division by 0)
@@ -809,13 +740,10 @@ double getReactedTemp(double oldTemp, int i, double tStep, int month, int day, i
 	Ews = deltaTs * wetp * length * UCF(LENGTH) / (radius * (log(radThick / radius) / kp +
 		log(penThick / radThick) / ks)); //+
 		//hydradi / (0.023 * powl(reywat, 0.8) * powl(prwat, 0.3333) * 0.6));
-	//fprintf(stdout, "%g %g %g %g %g\n", radius, thickness, penDepth, radThick, penThick);
-	//fprintf(stdout, "%g\n", flow);
 	// calculate the change in temperature over the given time step
 	//double denom = TempModel.density * TempModel.specHC * flow;
 	denom = TempModel.density * TempModel.specHC * volume;
 	deltaT = (Ewa + Ews) * tStep / denom;
-	//fprintf(stdout, "%g %g\n", Ewa/denom, Ews/denom);
 
 	// finally calculate the new temperature - Conduit[k].thermalEnergy leads to the change in temperature by heat exchanger depending on TempModel.extUnit
 	thermalExt = 0;
@@ -823,7 +751,6 @@ double getReactedTemp(double oldTemp, int i, double tStep, int month, int day, i
 		thermalExt = (Conduit[k].thermalEnergy * 1000 * tStep / denom);
 	else if (TempModel.extUnit == 'T')
 		thermalExt = Conduit[k].thermalEnergy;
-	//printf("%f, %f\n", Conduit[k].thermalEnergy, oldTemp);
 	oldTemp += deltaT + thermalExt;
 	return oldTemp;
 }
@@ -885,8 +812,6 @@ double getReactedTemps(double oldTemp, int i, double tStep, double airt, double 
 	deltaTs = soilTemp - oldTemp;
 
 	// calculate thermal resistivity for wastewater - air
-	//double deltaV = ABS(velocity - TempModel.ua);
-	//double deltaV = ABS(velocity - 0.004);
 	deltaV = sqrt(ABS(velocity * UCF(LENGTH) - windVel));
 
 	if (deltaV > 0.001) // if the relative velocity is lower than 1 mm/s the thermal resistivity is 0 (prevent division by 0)
@@ -897,9 +822,6 @@ double getReactedTemps(double oldTemp, int i, double tStep, double airt, double 
 		Ewa = widthLength * deltaV * (5.85 * deltaTa -
 			8.75 * ps0 * (exp(-ts0 / (oldTemp + 273.15)) -
 				humidity * exp(-ts0 / (airTemp + 273.15))));
-		// fprintf(stdout, "%g %g %g %g\n", widthLength * deltaV * (5.85 * deltaTa),widthLength , deltaV,widthLength * deltaV * (\
-             8.75 * ps0 * (exp(-ts0 / (oldTemp + 273.15)) - \
-                 humidity * exp(-ts0 / (airTemp + 273.15)))));
 	}
 	else
 	{
@@ -912,23 +834,13 @@ double getReactedTemps(double oldTemp, int i, double tStep, double airt, double 
 	//Ews = deltaTs / Rws;
 	radThick = radius + thickness;
 	penThick = radThick + penDepth;
-	//radThick = radius  - thickness;
-	//penThick = radThick + radius;
-	//double radi = 1.0 / radius;
 	Ews = deltaTs * wetp * length * UCF(LENGTH) / (radius * (log(radThick / radius) / kp +
 		log(penThick / radThick) / ks)); //+
 	//hydradi / (0.023 * powl(reywat, 0.8) * powl(prwat, 0.3333) * 0.6 ));
-	//fprintf(stdout, "1, %g %g %g %g %g %g %g\n", deltaTs, radius, thickness, penDepth, radThick, penThick, Link[i].oldDepth*UCF(LENGTH));
-	//fprintf(stdout, "2, %g %g %g %g\n", deltaTs , wetp , length , length2);
-	//fprintf(stdout, "%g\n", flow);
+	
 	// calculate the change in temperature over the given time step
 	denom = TempModel.density * TempModel.specHC * volume;
-	deltaT = (Ewa + Ews)* tStep / denom;
-	//double denom = TempModel.density * TempModel.specHC * flow;
-	//double deltaT = (Ewa + Ews) / denom;
-	//fprintf(stdout, "vol old, %g %g %g %g %g %g\n", tStep, (TempModel.density * TempModel.specHC * volume/tStep), TempModel.density , TempModel.specHC, volume, area);
-	//fprintf(stdout, "%g %g\n", Ewa/denom, Ews/denom);
-
+	deltaT = (Ewa + Ews)* tStep / denom;	
 	// finally calculate the new temperature - Conduit[k].thermalEnergy leads to the change in temperature by heat exchanger depending on TempModel.extUnit
 	thermalExt = 0;
 	if (TempModel.extUnit == 'P')
@@ -1011,7 +923,6 @@ double getReactedTempStNode(double oldTemp, int j, double tStep, int month, int 
 
 	// get the the temperatur of the inflows
 	Tin = Node[j].newTemp / Node[j].inflow; //+ 273.15;
-   // printf("%f, %f\n",Node[j].newQual[p],oldTemp);
 
 	// calculate the change in temperature over a given time step
 	//double deltaT = (volume * (oldTemp + 273.15) + Qin * Tin * tStep) / (volume + Qin * tStep);
@@ -1054,13 +965,6 @@ double getReactedTempStNodes(double oldTemp, int j, double tStep, double airt, d
 	Qin = Node[j].inflow * UCF(FLOW) / 1000; // m3/s
 	Qout = Node[j].outflow * UCF(FLOW) / 1000; // m3/s
 
-	// get the current month of simulation
-	//DateTime currentDate = getDateTime(NewRoutingTime);
-	//int month = datetime_monthOfYear(currentDate);
-
-	// get insewer-air and soil temperature of the current month
-	//double soilTemp = inflow_getPatternFactor((int)Storage[k].soilPat, month - 1, 0, 0);
-	//double airTemp = inflow_getPatternFactor((int)Storage[k].airPat, month - 1, 0, 0);
 	soilTemp = soilt;
 	//airTemp = airt;
 	// transform from FT to M
@@ -1071,7 +975,7 @@ double getReactedTempStNodes(double oldTemp, int j, double tStep, double airt, d
 	if (i >= 0)
 		wetA = getWettedArea(&Curve[Storage[k].aCurve], Node[j].newDepth * UCF(LENGTH));
 	else
-		wetA = 2 * PI * sqrt(surfaceArea / PI) * Node[j].newDepth * UCF(LENGTH) + surfaceArea;
+		wetA = 2 * PI * sqrt((Storage[k].aConst + surfaceArea) / 2. * PI) * Node[j].newDepth * UCF(LENGTH) + Storage[k].aConst;
 	// calculate temperature difference
 	//double deltaTa = airTemp - oldTemp;
 	deltaTs = soilTemp - oldTemp;
@@ -1148,11 +1052,11 @@ double getWettedArea(TTable* table, double x)
 		if (x <= x2) {
 			y2 = y1 + (y2 - y1) / (x2 - x1) * (x - x1);
 			x2 = x;
-			area = area + (sqrt(((y2 + y1) / (2 * PI))) * 2 * PI * (x2 - x1));
+			area = area + (sqrt(((y2 + y1) / (2. * PI))) * 2. * PI * (x2 - x1));
 			return area;
 		}
 		else
-			area = area + (sqrt(((y2 + y1) / (2 * PI))) * 2 * PI * (x2 - x1));
+			area = area + (sqrt(((y2 + y1) / (2. * PI))) * 2. * PI * (x2 - x1));
 		x1 = x2;
 		y1 = y2;
 	}

@@ -56,11 +56,6 @@ static void  updateHRT(int j, double v, double q, double tStep);
 static double getReactedQual(int p, double c, double v1, double tStep);
 static double getMixedQual(double c, double v1, double wIn, double qIn,
               double tStep);
-/* START modification by Peter Schlagbauer | TUGraz */
-//static double getReactedTemp(double oldTemp, int i, double tStep);
-//static double getReactedTempStNode(double oldTemp, int j, int p, double tStep);
-//static double getWettedArea(TTable* table, double d);
-/* END modification by Peter Schlagbauer | TUGraz */
 //=============================================================================
 
 void    qualrout_init()
@@ -78,24 +73,11 @@ void    qualrout_init()
         isWet = ( Node[i].newDepth > FUDGE );
         for (p = 0; p < Nobjects[POLLUT]; p++)
         {
-        /* START modification by Peter Schlagbauer | TUGraz */
-        //if (strcmp(QualUnitsWords[Pollut[p].units], "CELSIUS") == 0 && TempModel.active == 1)
-		//c = NAN; // set temperature to NaN, because 0 is a valid temperatur value
-	//else
 		c = 0.0;
-	/* END modification by Peter Schlagbauer | TUGraz */
             if ( isWet ) c = Pollut[p].initConcen;
             Node[i].oldQual[p] = c;
             Node[i].newQual[p] = c;
         }
-	//if (Node[i].type == STORAGE)
-	//	{
-	//		int k = Node[i].subIndex;
-			/* START modification by Peter Schlagbauer | TUGraz */
-			// calculate the penetration depth for each storage node
-		//	Storage[k].penDepth = sqrt(Storage[k].kSoil / (0.0000727220 * (Storage[k].densitySoil * Storage[k].specHcSoil)));
-			/* END modification by Peter Schlagbauer | TUGraz */
-	//	}
     }
 
     for (i = 0; i < Nobjects[LINK]; i++)
@@ -103,23 +85,11 @@ void    qualrout_init()
         isWet = ( Link[i].newDepth > FUDGE );
         for (p = 0; p < Nobjects[POLLUT]; p++)
         {
-		/* START modification by Peter Schlagbauer | TUGraz */
-		//if (strcmp(QualUnitsWords[Pollut[p].units], "CELSIUS") == 0 && TempModel.active == 1)
-		//	c = NAN; // set temperature to NaN, because 0 is a valid temperatur value
-		//else
 			c = 0.0;
-		/* END modification by Peter Schlagbauer | TUGraz */
             if ( isWet ) c = Pollut[p].initConcen;
             Link[i].oldQual[p] = c;
             Link[i].newQual[p] = c;
         }
-
-	//int k = Link[i].subIndex;
-	/* START modification by Peter Schlagbauer | TUGraz */
-	// calculate the penetration depth for each conduit
-	//Conduit[k].penDepth = sqrt(Conduit[k].kSoil / (0.0000727220 * Conduit[k].densitySoil * Conduit[k].specHcSoil));
-    //fprintf(stdout,"%g\n", Conduit[k].penDepth);
-    /* END modification by Peter Schlagbauer | TUGraz */
     }
 }
 
@@ -172,8 +142,6 @@ void qualrout_execute(double tStep)
     }
 
     // --- find new water quality in each link
-    //unitScale = UCF(LENGTH) / (2.0 * UCF(FLOW));
-    //for ( i = 0; i < Nobjects[LINK]; i++ ) findLinkQual(i, tStep, unitScale, month);
     for (i = 0; i < Nobjects[LINK]; i++) findLinkQual(i, tStep);
 }
 
@@ -238,25 +206,9 @@ void findLinkMassFlow(int i, double tStep)
     // --- examine each pollutant
     for (p = 0; p < Nobjects[POLLUT]; p++)
     {
-	/* START modification by Peter Schlagbauer | TUGraz */
         // --- temporarily accumulate inflow load in Node[j].newQual
-       // if (strcmp(QualUnitsWords[Pollut[p].units], "CELSIUS") == 0 && TempModel.active == 1)
-       // {
-       //     if (!isnan(Link[i].oldQual[p])) // do not consider NaN values
-       //     {
                 w = qLink * Link[i].oldQual[p];
                 Node[j].newQual[p] += w;
-        //    }
-        //    else
-        //        w = 0;
-       // }
-       // else
-       // {
-        //    w = qLink * Link[i].oldQual[p];
-       //     Node[j].newQual[p] += w;
-       // }
-	/* END modification by Peter Schlagbauer | TUGraz */
-
         // --- update total load transported by link
         Link[i].totalLoad[p] += w * tStep;
     }
@@ -286,13 +238,7 @@ void findNodeQual(int j)
     
     // --- otherwise concen. is 0
     else for (p = 0; p < Nobjects[POLLUT]; p++){
-		/* START modification by Peter Schlagbauer | TUGraz */
-		// set temperature/newQual to NaN, because 0 is a valid temperatur value
-	//	if (strcmp(QualUnitsWords[Pollut[p].units], "CELSIUS") == 0 && TempModel.active == 1)
-	//		Node[j].newQual[p] = NAN;
-    //    else
             Node[j].newQual[p] = 0.0;
-		/* END modification by Peter Schlagbauer | TUGraz */
 	}
 }
 
@@ -380,48 +326,19 @@ void findLinkQual(int i, double tStep)
 
         // --- increase concen. by evaporation factor
         c1 *= fEvap;
-	/* START modification by Peter Schlagbauer | TUGraz */
-		// it has been observed that at low flow rates the model may become unstable, therefore 0.5 L/s is a boundary
-		//if (Link[i].newFlow * UCF(FLOW) / 1000 > 0.0005) 
-	//if (Link[i].newFlow > unitScale * Link[i].xsect.yFull)
-		//if (Link[i].newFlow * UCF(FLOW)  > 0.0005) 
-	//	{
-	//		if (strcmp(QualUnitsWords[Pollut[p].units], "CELSIUS") == 0 && TempModel.active == 1)
-	//		{
-				// --- adjust temperature by heat exchange processes
-	//			if (Node[j].newQual[p] > 0.0) 					// one ore more inflows into the node
-	//				c2 = getReactedTemp(Node[j].newQual[p], i, tStep, month);
-	//			else // no inflow into the node, but still water inside the conduit
-	//				c2 = getReactedTemp(c1, i, tStep, month);
-	//		}
-	//		else
-	//		{
 				// --- reduce concen. by 1st-order reaction
 				c2 = getReactedQual(p, c1, v1, tStep);
-	//		}
-	//	}
-	//	else
-	//		c2 = c1;
 
 		// --- mix resulting contents with inflow from upstream node
-		//if (!isnan(Node[j].newQual[p])) { // do not consider NaN values
 			wIn = Node[j].newQual[p] * qIn;
 			c2 = getMixedQual(c2, v1, wIn, qIn, tStep);
-		//}
 
 		// --- set concen. to zero if remaining volume is negligible
 		if (v2 < ZeroVolume)
 		{
 			massbal_addToFinalStorage(p, c2 * v2);
-
-			// set temperature to NaN, because 0 is a valid temperatur value
-			//if (strcmp(QualUnitsWords[Pollut[p].units], "CELSIUS") == 0 && TempModel.active == 1)
-			//	c2 = NAN;
-			//else
 				c2 = 0.0;
 		}
-		/* END modification by Peter Schlagbauer | TUGraz */
-
      	        // --- assign new concen. to link
       	        Link[i].newQual[p] = c2;
     }
@@ -522,19 +439,12 @@ void  findStorageQual(int j, double tStep)
 
         // --- increase concen. by evaporation factor
         c1 *= fEvap;
-		/* START modification by Peter Schlagbauer | TUGraz */
-		//if (strcmp(QualUnitsWords[Pollut[p].units], "CELSIUS") == 0 && TempModel.active == 1 && c1 != 0.0 && !isnan(c1))
-		//	c1 = getReactedTempStNode(c1, j, p, tStep, month);
-		//else
-		//{
 			// --- apply first order reaction only if no separate treatment function
 			if (Node[j].treatment == NULL ||
 				Node[j].treatment[p].equation == NULL)
 			{
 				c1 = getReactedQual(p, c1, v1, tStep);
 			}
-		//}
-		/* END modification by Peter Schlagbauer | TUGraz */
 
         // --- mix resulting contents with inflow from all sources
         //     (temporarily accumulated in Node[j].newQual)

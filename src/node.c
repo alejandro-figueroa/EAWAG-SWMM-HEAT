@@ -179,7 +179,7 @@ void  node_setParams(int j, int type, int k, double x[])
         Node[j].surDepth   = x[7] / UCF(LENGTH);                               //
         
         Storage[k].fEvap   = x[8];
-		/* START modification by Peter Schlagbauer | TUGraz */
+		/* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 		Storage[k].thickness = x[9] / UCF(LENGTH);
 		Storage[k].kWall   = x[10];
 		Storage[k].kSoil   = x[11];
@@ -187,7 +187,7 @@ void  node_setParams(int j, int type, int k, double x[])
 		Storage[k].densitySoil = x[13];
 		Storage[k].airPat = x[14];
 		Storage[k].soilPat = x[15];
-		/* END modification by Peter Schlagbauer | TUGraz */
+		/* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
         break;
 
       case DIVIDER:
@@ -710,9 +710,9 @@ int storage_readParams(int j, int k, char* tok[], int ntoks)
 //
 {
     int    i, m, n;
-	/* START modification by Peter Schlagbauer | TUGraz */
+	/* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 	double x[16]; //old: x[9];
-	/* END modification by Peter Schlagbauer | TUGraz */
+	/* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
     char*  id;
 
     // --- get ID name
@@ -776,7 +776,7 @@ int storage_readParams(int j, int k, char* tok[], int ntoks)
         n++;
     }
 
-	/* START modification by Peter Schlagbauer | TUGraz */
+	/* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 	int startTok;
 	m = findmatch(tok[4], RelationWords);
 	if (m == FUNCTIONAL)
@@ -847,7 +847,7 @@ int storage_readParams(int j, int k, char* tok[], int ntoks)
 		if (x[15] < 0) return error_setInpError(ERR_NAME, tok[startTok]);
 		n++;
 	}
-	/* END modification by Peter Schlagbauer | TUGraz */
+	/* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 
 	// --- add parameters to storage unit object
 	Node[j].ID = id;
@@ -997,9 +997,9 @@ double storage_getSurfArea(int j, double d)
         else area = Storage[k].aConst + Storage[k].aCoeff *
                     pow(d*UCF(LENGTH), Storage[k].aExpon);
     }
-	/* START modification by Peter Schlagbauer | TUGraz */
+	/* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 	Storage[k].area = area / (UCF(LENGTH) * UCF(LENGTH));
-	/* END modification by Peter Schlagbauer | TUGraz */
+	/* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
     return area / UCF(LENGTH) / UCF(LENGTH);
 }
 

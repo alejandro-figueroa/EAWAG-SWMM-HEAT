@@ -734,7 +734,7 @@ int project_readOption(char* s1, char* s2)
         sstrncpy(TempDir, s2, MAXFNAME);
         break;
 
-	  /* START modification by Peter Schlagbauer | TUGraz */
+	  /* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 	  // --- temperature model
 	  case TEMP_MODEL:
 		  TempModel.active = atoi(s2);
@@ -748,10 +748,6 @@ int project_readOption(char* s1, char* s2)
 		  TempModel.specHC = atof(s2);
 		  break;
 
-          /* START modification by Alejandro Figueroa | EAWAG */
-	  //case UA:
-	  //	  TempModel.ua = atof(s2);
-	  //	  break;
 	  case HUMIDITY:
 	  	  TempModel.humidity = atof(s2);
 	  	  break;
@@ -768,8 +764,7 @@ int project_readOption(char* s1, char* s2)
       case ASCII_OUT:
           outAscii = atoi(s2);
           break;
-	  /* END modification by Peter Schlagbauer | TUGraz */
-    /* END modification by Alejandro Figueroa | EAWAG */
+	  /* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
     }
     return 0;
 }

@@ -603,7 +603,6 @@ void output_saveSubcatchResults(double reportTime, FILE* file)
 
     // --- find where current reporting time lies between latest runoff times
     f = (reportTime - OldRunoffTime) / (NewRunoffTime - OldRunoffTime);
-
     // --- write subcatchment results to file
     for ( j=0; j<Nobjects[SUBCATCH]; j++)
     {

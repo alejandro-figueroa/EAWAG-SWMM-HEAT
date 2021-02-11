@@ -330,12 +330,17 @@ int inflow_readDwfInflow(char* tok[], int ntoks)
     k = project_findObject(POLLUT, tok[1]);
     if ( k < 0 )
     {
-        if (match(tok[1], w_TEMPERATURE))
+        if (match(tok[1], w_WTEMPERATURE))
         {
-            k = project_findObject(TEMPERATURE, tok[1]);
+
+            k = project_findObject(WTEMPERATURE, tok[1]);
             if (k > -1) k = -10;
         }
-        else if ( match(tok[1], w_FLOW) ) k = -1;
+        else if (match(tok[1], w_FLOW))
+        {
+
+            k = -1;
+        }
         else return error_setInpError(ERR_NAME, tok[1]);
     }
     /* END modification by Alejandro Figueroa | EAWAG */
@@ -376,6 +381,7 @@ int inflow_readDwfInflow(char* tok[], int ntoks)
     // --- assign property values to the inflow object
     inflow->param = k;
     inflow->avgValue = x;
+
     for (i=0; i<4; i++) inflow->patterns[i] = pats[i];
     return 0;
 }

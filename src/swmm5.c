@@ -407,7 +407,6 @@ int DLLEXPORT swmm_start(int saveResults)
 
         /* START modification by Alejandro Figueroa | EAWAG */
         // --- open ascii output file
-        //fprintf(stdout, "outascii %d\n", outAscii);
         if ( outAscii ) output_open_ascii();
         /* END modification by Alejandro Figueroa | EAWAG */
 
