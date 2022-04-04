@@ -2,29 +2,28 @@
 //   input.c
 //
 //   Project:  EPA SWMM5
-//   Version:  5.1
-//   Date:     03/20/14  (Build 5.1.001)
-//             09/15/14  (Build 5.1.007)
-//             08/01/16  (Build 5.1.011)
-//             04/01/20  (Build 5.1.015)
+//   Version:  5.2
+//   Date:     11/01/21  (Build 5.2.0)
 //   Author:   L. Rossman
 //
 //   Input data processing functions.
 //
+//   Update History
+//   ==============
 //   Build 5.1.007:
 //   - Support added for climate adjustment input data.
-//
 //   Build 5.1.011:
 //   - Support added for reading hydraulic event dates.
-//
 //   Build 5.1.015:
 //   - Support added for multiple infiltration methods within a project.
+//   Build 5.2.0:
+//   - Support added for Streets and Inlets.
+//   - Support added for named variables & math expressions in control rules.
 //-----------------------------------------------------------------------------
 #define _CRT_SECURE_NO_DEPRECATE
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdlib.h>
 #include <math.h>
 #include "headers.h"
 #include "lid.h"
@@ -87,14 +86,15 @@ int input_countObjects()
     for (i = 0; i < MAX_OBJ_TYPES; i++) Nobjects[i] = 0;
     for (i = 0; i < MAX_NODE_TYPES; i++) Nnodes[i] = 0;
     for (i = 0; i < MAX_LINK_TYPES; i++) Nlinks[i] = 0;
+    controls_init();
 
     // --- make pass through data file counting number of each object
     while ( fgets(line, MAXLINE, Finp.file) != NULL )
     {
         // --- skip blank lines & those beginning with a comment
         lineCount++;
-        strcpy(wLine, line);           // make working copy of line
-        tok = strtok(wLine, SEPSTR);   // get first text token on line
+        sstrncpy(wLine, line, MAXLINE);     // make working copy of line
+        tok = strtok(wLine, SEPSTR);        // get first text token on line
         if ( tok == NULL ) continue;
         if ( *tok == ';' ) continue;
 
@@ -176,7 +176,7 @@ int input_readData()
     {
         // --- make copy of line and scan for tokens
         lineCount++;
-        strcpy(wLine, line);
+        sstrncpy(wLine, line, MAXLINE);
         Ntokens = getTokens(wLine);
 
         // --- skip blank lines and comments
@@ -184,12 +184,12 @@ int input_readData()
         if ( *Tok[0] == ';' ) continue;
 
         // --- check if max. line length exceeded
-        lineLength = strlen(line);
+        lineLength = (int)strlen(line);
         if ( lineLength >= MAXLINE )
         {
             // --- don't count comment if present
             comment = strchr(line, ';');
-            if ( comment ) lineLength = comment - line;    // Pointer math here
+            if ( comment ) lineLength = (int)(comment - line);  // Pointer math here
             if ( lineLength >= MAXLINE )
             {
                 inperr = ERR_LINE_LENGTH;
@@ -201,10 +201,12 @@ int input_readData()
         // --- check if at start of a new input section
         if (*Tok[0] == '[')
         {
+        //    printf("input section, %s\n", Tok[0]);
             // --- match token against list of section keywords
             newsect = findmatch(Tok[0], SectWords);
             if (newsect >= 0)
             {
+        //        printf("good, %s\n", Tok[0]);
                 // --- SPECIAL CASE FOR TRANSECTS
                 //     finish processing the last set of transect data
                 if ( sect == s_TRANSECT )
@@ -216,6 +218,7 @@ int input_readData()
             }
             else
             {
+        //        printf("bad, %s\n", Tok[0]);
                 inperr = error_setInpError(ERR_KEYWORD, Tok[0]);
                 report_writeInputErrorMsg(inperr, sect, line, lineCount);
                 errsum++;
@@ -226,7 +229,9 @@ int input_readData()
         // --- otherwise parse tokens from input line
         else
         {
+        //    printf("line, %s\n", line);
             inperr = parseLine(sect, line);
+        //    printf("line, %d\n", inperr);
             if ( inperr > 0 )
             {
                 errsum++;
@@ -238,6 +243,7 @@ int input_readData()
         // --- stop if reach end of file or max. error count
         if (errsum > MAXERRS) break;
     }   /* End of while */
+    //printf("end error, %d\n", ERR_INPUT);
 
     // --- check for errors
     if (errsum > 0)  ErrorCode = ERR_INPUT;
@@ -414,6 +420,7 @@ int  addObject(int objType, char* id)
 
       case s_CONTROL:
         if ( match(id, w_RULE) ) Nobjects[CONTROL]++;
+        else controls_addToCount(id);
         break;
 
       case s_TRANSECT:
@@ -443,6 +450,22 @@ int  addObject(int objType, char* id)
         break;
 
       case s_EVENT: NumEvents++; break;
+
+      case s_STREET:
+        if ( !project_addObject(STREET, id, Nobjects[STREET]) )
+            errcode = error_setInpError(ERR_DUP_NAME, id);
+        Nobjects[STREET]++;
+        break;
+
+      case s_INLET:
+        // --- an INLET object can span several lines
+        if (project_findObject(INLET, id) < 0)
+        {
+            if ( !project_addObject(INLET, id, Nobjects[INLET]) ) 
+                errcode = error_setInpError(ERR_DUP_NAME, id);
+            Nobjects[INLET]++;
+        }
+        break;
     }
     return errcode;
 }
@@ -488,7 +511,7 @@ int  parseLine(int sect, char *line)
         return subcatch_readSubareaParams(Tok, Ntokens);
 
       case s_INFIL:
-        return infil_readParams(InfilModel, Tok, Ntokens);                     //(5.1.015)
+        return infil_readParams(InfilModel, Tok, Ntokens);
 
       case s_AQUIFER:
         j = Mobjects[AQUIFER];
@@ -551,6 +574,12 @@ int  parseLine(int sect, char *line)
       case s_WTEMPERATURE:
           err = landuse_readTempParams(Tok, Ntokens);
           return err;
+
+      case s_HEATR:
+          return heatr_readLink(Tok, Ntokens);
+
+      case s_SEDTEMP:
+          return tsed_readLink(Tok, Ntokens);
           /* END modification by Alejandro Figueroa | EAWAG */
 
       case s_LANDUSE:
@@ -613,6 +642,15 @@ int  parseLine(int sect, char *line)
       case s_EVENT:
         return readEvent(Tok, Ntokens);
 
+      case s_STREET:
+        return street_readParams(Tok, Ntokens);
+
+      case s_INLET:
+        return inlet_readDesignParams(Tok, Ntokens);
+
+      case s_INLET_USAGE:
+        return inlet_readUsageParams(Tok, Ntokens);
+
       default: return 0;
     }
 }
@@ -632,6 +670,11 @@ int readControl(char* tok[], int ntoks)
 
     // --- check for minimum number of tokens
     if ( ntoks < 2 ) return error_setInpError(ERR_ITEMS, "");
+
+    if (match(tok[0], w_VARIABLE))
+        return controls_addVariable(tok, ntoks);
+    if (match(tok[0], w_EXPRESSION))
+        return controls_addExpression(tok, ntoks);
 
     // --- get index of control rule keyword
     keyword = findmatch(tok[0], RuleKeyWords);
@@ -685,7 +728,7 @@ int readTitle(char* line)
         if ( strlen(Title[i]) == 0 )
         {
             // --- strip line feed character from input line
-            n = strlen(line);
+            n = (int)strlen(line);
             if (line[n-1] == 10) line[n-1] = ' ';
 
             // --- copy input line into Title entry
@@ -784,19 +827,19 @@ int  match(char *str, char *substr)
 //           (not case sensitive).
 //
 {
-    int i,j;
+    int i,j,k;
 
     // --- fail if substring is empty
     if (!substr[0]) return(0);
 
     // --- skip leading blanks of str
-    for (i = 0; str[i]; i++)
+    for (k = 0; str[k]; k++)
     {
-        if (str[i] != ' ') break;
+        if (str[k] != ' ') break;
     }
 
     // --- check if substr matches remainder of str
-    for (i = i,j = 0; substr[j]; i++,j++)
+    for (i = k,j = 0; substr[j]; i++,j++)
     {
         if (!str[i] || UCHAR(str[i]) != UCHAR(substr[j])) return(0);
     }
@@ -871,7 +914,8 @@ int  getTokens(char *s)
 //           in CONSTS.H. Text between quotes is treated as a single token.
 //
 {
-    int  len, m, n;
+    int    n;
+    size_t len, m;
     char *c;
 
     // --- begin with no tokens
@@ -881,7 +925,7 @@ int  getTokens(char *s)
     // --- truncate s at start of comment 
     c = strchr(s,';');
     if (c) *c = '\0';
-    len = strlen(s);
+    len = (int)strlen(s);
 
     // --- scan s for tokens until nothing left
     while (len > 0 && n < MAXTOKS)
@@ -903,7 +947,7 @@ int  getTokens(char *s)
         }
         len -= m+1;                         // update length of s
     }
-    return(n);
+    return n;
 }
 
 //=============================================================================

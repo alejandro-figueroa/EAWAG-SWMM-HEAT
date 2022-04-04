@@ -2,42 +2,42 @@
 //   funcs.h
 //
 //   Project:  EPA SWMM5
-//   Version:  5.1
-//   Date:     03/20/14  (Build 5.1.000)
-//             09/15/14  (Build 5.1.007)
-//             04/02/15  (Build 5.1.008)
-//             08/05/15  (Build 5.1.010)
-//             05/10/18  (Build 5.1.013)
-//             03/01/20  (Build 5.1.014)
-//   Author:   L. Rossman (EPA)
+//   Version:  5.2
+//   Date:     11/01/21 (Build 5.2.0)
+//   Author:   L. Rossman
 //             M. Tryby (EPA)
 //
 //   Global interfacing functions.
 //
+//   Update History
+//   ==============
 //   Build 5.1.007:
 //   - climate_readAdjustments() added.
-//
 //   Build 5.1.008:
 //   - Function list was re-ordered and blank lines added for readability.
 //   - Pollutant buildup/washoff functions for the new surfqual.c module added.
 //   - Several other functions added, re-named or have modified arguments.
-//
 //   Build 5.1.010:
 //   - New roadway_getInflow() function added.
-//
 //   Build 5.1.013:
 //   - Additional arguments added to function stats_updateSubcatchStats.
-//
 //   Build 5.1.014:
 //   - Arguments to link_getLossRate function changed.
-//
+//   Build 5.2.0:
+//   - Support added for Streets and Inlets.
+//   - Support added for reporting most frequent non-converging links.
+//   - Support added for named variables & math expressions in control rules.
+//   - Support added for tracking a gage's prior n-hour rainfall total.
+//   - Refactored external inflow code.
 //-----------------------------------------------------------------------------
 
 #ifndef FUNCS_H
 #define FUNCS_H
 
-
-void     project_open(char *f1, char *f2, char *f3);
+//-----------------------------------------------------------------------------
+//   Project Methods
+//-----------------------------------------------------------------------------
+void     project_open(const char *f1, const char *f2, const char *f3);
 void     project_close(void);
 
 void     project_readInput(void);
@@ -46,7 +46,7 @@ void     project_validate(void);
 int      project_init(void);
 
 int      project_addObject(int type, char* id, int n);
-int      project_findObject(int type, char* id);
+int      project_findObject(int type, const char* id);
 char*    project_findID(int type, char* id);
 
 double** project_createMatrix(int nrows, int ncols);
@@ -63,7 +63,7 @@ int     input_readData(void);
 //-----------------------------------------------------------------------------
 int     report_readOptions(char* tok[], int ntoks);
 
-void    report_writeLine(char* line);
+void    report_writeLine(const char* line);
 void    report_writeSysTime(void);
 void    report_writeLogo(void);
 void    report_writeTitle(void);
@@ -89,12 +89,14 @@ void    report_writeTempError(TRoutingTotals totals);
 void    report_writeMaxStats(TMaxStats massBalErrs[], TMaxStats CourantCrit[],
         int nMaxStats);
 void    report_writeMaxFlowTurns(TMaxStats flowTurns[], int nMaxStats);
-void    report_writeSysStats(TSysStats* sysStats);
+void    report_writeNonconvergedStats(TMaxStats maxNonconverged[],
+        int nMaxStats);
+void    report_writeTimeStepStats(TTimeStepStats* timeStepStats);
 
 void    report_writeErrorMsg(int code, char* msg);
 void    report_writeErrorCode(void);
 void    report_writeInputErrorMsg(int k, int sect, char* line, long lineCount);
-void    report_writeWarningMsg(char* msg, char* id);
+void    report_writeWarningMsg(char* msg, char* id); 
 void    report_writeTseriesErrorMsg(int code, TTable *tseries);
 
 void    inputrpt_writeInput(void);
@@ -160,14 +162,13 @@ int     output_open_ascii(void);
 void    output_end(void);
 void    output_end_ascii(void);
 void    output_close(void);
-void    output_checkFileSize(void);
 void    output_saveResults(double reportTime);
 void    output_saveResults_ascii(double reportTime);
 void    output_updateAvgResults(void);
-void    output_readDateTime(int period, DateTime *aDate);
-void    output_readSubcatchResults(int period, int area);
-void    output_readNodeResults(int period, int node);
-void    output_readLinkResults(int period, int link);
+void    output_readDateTime(long period, DateTime *aDate);
+void    output_readSubcatchResults(long period, int index);
+void    output_readNodeResults(int long, int index);
+void    output_readLinkResults(int long, int index);
 
 //-----------------------------------------------------------------------------
 //   Groundwater Methods
@@ -241,9 +242,15 @@ void    dwflow_findConduitFlow(int j, int steps, double omega, double dt);
 
 void    qualrout_init(void);
 void    qualrout_execute(double tStep);
+
 /* START modification by Alejandro Figueroa | EAWAG */
+//-----------------------------------------------------------------------------
+//   Temperature Methods
+//-----------------------------------------------------------------------------
 void    temprout_execute(double tStep);
-void    temprout_init(void);
+void    temprout_init(void); 
+int     heatr_readLink(char* tok[], int ntoks);
+int     tsed_readLink(char* tok[], int ntoks);
 /* END modification by Alejandro Figueroa | EAWAG */
 
 //-----------------------------------------------------------------------------
@@ -268,6 +275,7 @@ void    massbal_updateLoadingTotals(int type, int pollut, double w);
 void    massbal_updateGwaterTotals(double vInfil, double vUpperEvap,
         double vLowerEvap, double vLowerPerc, double vGwater);
 void    massbal_updateRoutingTotals(double tStep);
+
 
 void    massbal_initTimeStepTotals(void);
 void    massbal_addInflowFlow(int type, double q);
@@ -297,16 +305,19 @@ void    stats_close(void);
 void    stats_report(void);
 
 void    stats_updateCriticalTimeCount(int node, int link);
-void    stats_updateFlowStats(double tStep, DateTime aDate, int stepCount,
-        int steadyState);
-void    stats_updateSubcatchStats(int subcatch, double rainVol,
+void    stats_updateFlowStats(double tStep, DateTime aDate);
+void    stats_updateTimeStepStats(double tStep, int trialsCount, int steadyState);
+
+void    stats_updateSubcatchStats(int subcatch, double rainVol, 
         double runonVol, double evapVol, double infilVol,
-        double impervVol, double pervVol, double runoffVol, double runoff);    //(5.1.013)
+        double impervVol, double pervVol, double runoffVol, double runoff);
 void    stats_updateGwaterStats(int j, double infil, double evap,
         double latFlow, double deepFlow, double theta, double waterTable,
         double tStep);
 void    stats_updateMaxRunoff(void);
 void    stats_updateMaxNodeDepth(int node, double depth);
+void    stats_updateConvergenceStats(int node, int converged);
+
 
 //-----------------------------------------------------------------------------
 //   Raingage Methods
@@ -318,6 +329,8 @@ void     gage_setState(int gage, DateTime aDate);
 double   gage_getPrecip(int gage, double *rainfall, double *snowfall);
 void     gage_setReportRainfall(int gage, DateTime aDate);
 DateTime gage_getNextRainDate(int gage, DateTime aDate);
+void     gage_updatePastRain(int j, int tStep);
+double   gage_getPastRain(int gage, int hrs);
 
 //-----------------------------------------------------------------------------
 //   Subcatchment Methods
@@ -361,7 +374,7 @@ int     node_readParams(int node, int type, int subIndex, char* tok[], int ntoks
 void    node_validate(int node);
 
 void    node_initState(int node);
-void    node_initInflow(int node, double tStep);
+void    node_initFlows(int node, double tStep);
 void    node_setOldHydState(int node);
 void    node_setOldQualState(int node);
 /* START modification by Alejandro Figueroa | EAWAG */
@@ -386,11 +399,8 @@ void    node_getResults(int node, double wt, float x[]);
 int     inflow_readExtInflow(char* tok[], int ntoks);
 int     inflow_readDwfInflow(char* tok[], int ntoks);
 int     inflow_readDwfPattern(char* tok[], int ntoks);
-int     inflow_setExtInflow(int j, int param, int type,
-        int tSeries, int basePat, double cf,
-        double baseline, double sf);
-int     inflow_validate(int param, int type, int tSeries, 
-        int basePat, double *cf);					
+int     inflow_setExtInflow(int j, int param, int type, int tSeries,
+        int basePat, double cf, double baseline, double sf);
 						
 void    inflow_initDwfInflow(TDwfInflow* inflow);
 void    inflow_initDwfPattern(int pattern);
@@ -450,7 +460,7 @@ double  link_getYnorm(int link, double q);
 double  link_getVelocity(int link, double q, double y);
 double  link_getFroude(int link, double v, double y);
 double  link_getPower(int link);
-double  link_getLossRate(int link, double q);                                  //(5.1.014)
+double  link_getLossRate(int link, double q);
 char    link_getFullState(double a1, double a2, double aFull);
 
 void    link_getResults(int link, double wt, float x[]);
@@ -462,6 +472,7 @@ int     xsect_isOpen(int type);
 int     xsect_setParams(TXsect *xsect, int type, double p[], double ucf);
 void    xsect_setIrregXsectParams(TXsect *xsect);
 void    xsect_setCustomXsectParams(TXsect *xsect);
+void    xsect_setStreetXsectParams(TXsect *xsect);
 double  xsect_getAmax(TXsect* xsect);
 
 double  xsect_getSofA(TXsect* xsect, double area);
@@ -499,6 +510,15 @@ int     transect_create(int n);
 void    transect_delete(void);
 int     transect_readParams(int* count, char* tok[], int ntoks);
 void    transect_validate(int j);
+void    transect_createStreetTransect(TStreet* street);
+
+//-----------------------------------------------------------------------------
+//   Street Cross-Section Methods
+//-----------------------------------------------------------------------------
+int     street_create(int nStreets);
+void    street_delete();
+int     street_readParams(char* tok[], int ntoks);
+double  street_getExtentFilled(int link);
 
 //-----------------------------------------------------------------------------
 //   Custom Shape Cross-Section Methods
@@ -510,12 +530,16 @@ int     shape_validate(TShape *shape, TTable *curve);
 //-----------------------------------------------------------------------------
 int     controls_create(int n);
 void    controls_delete(void);
+void    controls_init(void);
+void    controls_addToCount(char* s);
+int     controls_addVariable(char* tok[], int ntoks);
+int     controls_addExpression(char* tok[], int ntoks);
 int     controls_addRuleClause(int rule, int keyword, char* Tok[], int nTokens);
-int     controls_evaluate(DateTime currentTime, DateTime elapsedTime,
+int     controls_evaluate(DateTime currentTime, DateTime elapsedTime, 
         double tStep);
 
 //-----------------------------------------------------------------------------
-//   Table & Time Series Methods
+//   Table & Time Series Methods (Check this later!!!)
 //-----------------------------------------------------------------------------
 int     table_readCurve(char* tok[], int ntoks);
 int     table_readTimeseries(char* tok[], int ntoks);
@@ -535,8 +559,8 @@ double  table_inverseLookup(TTable* table, double y);
 
 double  table_getSlope(TTable *table, double x);
 double  table_getMaxY(TTable *table, double x);
-double  table_getArea(TTable* table, double x);
-double  table_getInverseArea(TTable* table, double a);
+double  table_getStorageVolume(TTable* table, double x);
+double  table_getStorageDepth(TTable* table, double v);
 
 void    table_tseriesInit(TTable *table);
 double  table_tseriesLookup(TTable* table, double t, char extend);
@@ -553,13 +577,15 @@ char*    getTempFileNameAscii(char* s);       // get temporary file name
 char*    getTempFileNameAsciih(char* s);       // get temporary file name
 int      findmatch(char *s, char *keyword[]); // search for matching keyword
 int      match(char *str, char *substr);      // true if substr matches part of str
-int      strcomp(char *s1, char *s2);         // case insensitive string compare
-char*    sstrncpy(char *dest, const char *src,
-         size_t maxlen);                      // safe string copy
-void     writecon(char *s);                   // writes string to console
+int      strcomp(const char *s1, const char *s2); // case insensitive string compare
+size_t   sstrncpy(char *dest, const char *src,
+         size_t n);                           // safe string copy
+size_t   sstrcat(char* dest, const char* src,
+         size_t destsize);                    // safe string concatenation 
+void     writecon(const char *s);             // writes string to console
 DateTime getDateTime(double elapsedMsec);     // convert elapsed time to date
 void     getElapsedTime(DateTime aDate,       // convert elapsed date
          int* days, int* hrs, int* mins);
-
+char*    addAbsolutePath(char *fname);        // add full path to a file name
 
 #endif //FUNCS_H

@@ -31,11 +31,18 @@
 //-----------------------------------------------------------------------------
 #define _CRT_SECURE_NO_DEPRECATE
 
+// Large File Support
+#ifdef _MSC_VER    // Windows (32-bit and 64-bit)
+#define F_OFF __int64
+#define F_SEEK _fseeki64
+#elif              // Other platforms
+#define F_OFF off64_t
+#define F_SEEK fseeko
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "headers.h"
-
 
 // Definition of 4-byte integer, 4-byte real and 8-byte real types
 #define INT4  int
@@ -53,10 +60,10 @@ typedef struct                                                                 /
 //-----------------------------------------------------------------------------
 //  Shared variables    
 //-----------------------------------------------------------------------------
-static INT4      IDStartPos;           // starting file position of ID names
-static INT4      InputStartPos;        // starting file position of input data
-static INT4      OutputStartPos;       // starting file position of output data
-static INT4      BytesPerPeriod;       // bytes saved per simulation time period
+static F_OFF     IDStartPos;           // starting file position of ID names
+static F_OFF     InputStartPos;        // starting file position of input data
+static F_OFF     OutputStartPos;       // starting file position of output data
+static F_OFF     BytesPerPeriod;       // bytes saved per simulation time period
 static INT4      NumSubcatchVars;      // number of subcatchment output variables
 static INT4      NumNodeVars;          // number of node output variables
 static INT4      NumLinkVars;          // number of link output variables
@@ -93,7 +100,8 @@ static void output_openOutFile_asciih(void);
 static void output_saveID_ascii(char* id, FILE* file);
 static void output_saveSubcatchResults_ascii(double reportTime, FILE* file);
 static void output_saveNodeResults_ascii(double reportTime, FILE* file);
-static void output_saveLinkResults_ascii(double reportTime, FILE* file);
+static void output_saveLinkResults_ascii(double reportTime, FILE* file);                                 //
+static void output_initAvgResults_ascii(void);
 static void output_saveAvgResults_ascii(FILE* file);                                 //
 
 
@@ -117,7 +125,7 @@ int output_open_ascii()
     INT4  k;
     REAL4 x;
     REAL8 z;
-
+    F_OFF numResults;
     // --- open ascii output file
     output_openOutFile_ascii();
     output_openOutFile_asciih();
@@ -137,7 +145,7 @@ int output_open_ascii()
 
     // --- link results consist of Depth, Flow, Velocity, Volume,              //(5.1.013)
     //     Capacity and Quality
-    NumLinkVars = MAX_LINK_RESULTS - 2 + NumPolluts + TempModel.active;
+    NumLinkVars = MAX_LINK_RESULTS - 4 + NumPolluts + TempModel.active * 3;
 
     // --- get number of objects reported on
     NumSubcatch = 0;
@@ -147,18 +155,18 @@ int output_open_ascii()
     for (j = 0; j < Nobjects[NODE]; j++) if (Node[j].rptFlag) NumNodes++;
     for (j = 0; j < Nobjects[LINK]; j++) if (Link[j].rptFlag) NumLinks++;
 
-    BytesPerPeriod = sizeof(REAL8)
-        + NumSubcatch * NumSubcatchVars * sizeof(REAL4)
-        + NumNodes * NumNodeVars * sizeof(REAL4)
-        + NumLinks * NumLinkVars * sizeof(REAL4)
-        + MAX_SYS_RESULTS * sizeof(REAL4);
+    // --- find size of results saved in each time period
+    numResults = ((F_OFF)NumSubcatch * (F_OFF)NumSubcatchVars)
+        + ((F_OFF)NumNodes * (F_OFF)NumNodeVars)
+        + ((F_OFF)NumLinks * (F_OFF)NumLinkVars) + MAX_SYS_RESULTS;
+    BytesPerPeriod = sizeof(REAL8) + (numResults * sizeof(REAL4));
     Nperiods = 0;
 
 
-    fseek(Foutasciih.file, 0, SEEK_SET);
+    F_SEEK(Foutasciih.file, 0, SEEK_SET);
     fprintf(Foutasciih.file, "MAGICNUMBER, VERSION, FLOW_UNITS, NUMSUBCATCH, NUMNODES, NUMLINKS, NUMPOLLUTS\n");
     fprintf(Foutasciih.file, "%d %d %d %d %d %d %d\n", MAGICNUMBER, VERSION, FlowUnits, NumSubcatch, NumNodes, NumLinks, \
-        NumPolluts, TempModel.active);
+                                                       NumPolluts);
 
     // --- save ID names of subcatchments, nodes, links, & pollutants 
     IDStartPos = ftell(Foutasciih.file);
@@ -197,7 +205,7 @@ int output_open_ascii()
 
     if (TempModel.active == 1)
     {
-        fprintf(Foutasciih.file, "LENGHT, WTEMPERATURE_ID\n");
+    fprintf(Foutasciih.file, "LENGHT, WTEMPERATURE_ID\n");
     output_saveID_ascii(WTemperature.ID, Foutasciih.file);
     fprintf(Foutasciih.file, "WTEMPERATURE_UNITS\n");
     fprintf(Foutasciih.file, "%d ", WTemperature.units);
@@ -301,6 +309,8 @@ NODE_OVERFLOW\n");
     fprintf(Foutasciih.file, "\n");
     fprintf(Foutasciih.file, "LINK_WTEMP\n");
     fprintf(Foutasciih.file, "%d ", TempModel.active + LINK_WTEMP - 1);
+    fprintf(Foutasciih.file, "%d ", TempModel.active + LINK_HEAT - 1);
+    fprintf(Foutasciih.file, "%d ", TempModel.active + LINK_SEDIMENTT - 1);
 
     fprintf(Foutasciih.file, "\n");
 
@@ -402,27 +412,34 @@ void output_saveResults_ascii(double reportTime)
 //
 {
     int i;
-    extern TRoutingTotals StepFlowTotals;  // defined in massbal.c             //(5.1.013)
+    //extern TRoutingTotals StepFlowTotals;  // defined in massbal.c             //(5.1.013)
     DateTime reportDate = getDateTime(reportTime);
     //REAL8 date;
 
     // --- initialize system-wide results
+
     if ( reportDate < ReportStart ) return;
+    //printf("inside %g %g\n", ReportTime, ReportStart);
     for (i=0; i<MAX_SYS_RESULTS; i++) SysResults[i] = 0.0f;
 
     // --- save date corresponding to this elapsed reporting time
     fprintf(Foutascii.file, "%21.16e ", reportDate);
 
     // --- save subcatchment results
+    //printf("save ascii  sub\n");
     if (Nobjects[SUBCATCH] > 0)
         output_saveSubcatchResults_ascii(reportTime, Foutascii.file);
 
     // --- save average routing results over reporting period if called for    //(5.1.013)
-    if ( RptFlags.averages ) output_saveAvgResults_ascii(Foutascii.file);                 //
-
+    if (RptFlags.averages)
+    {
+        //printf("save ascii avg out\n");
+        output_saveAvgResults_ascii(Foutascii.file);                 //
+    }
     // --- otherwise save interpolated point routing results                   //(5.1.013)
     else                                                                       //
     {
+        //printf("save ascii avg else\n");
         if (Nobjects[NODE] > 0)
             output_saveNodeResults_ascii(reportTime, Foutascii.file);
         if (Nobjects[LINK] > 0)
@@ -442,9 +459,9 @@ void output_end_ascii()
 {
     //INT4 k;
     fprintf(Foutasciih.file, "ID_START_POS, INPUT_START_POS, OUTPUT_START_POS\n");
-    fprintf(Foutasciih.file, "%d %d %d\n", IDStartPos, InputStartPos, OutputStartPos);
+    fprintf(Foutasciih.file, "%I64d %I64d %I64d\n", IDStartPos, InputStartPos, OutputStartPos);
     fprintf(Foutasciih.file, "NPERIODS, EROR_GETCODE\n");
-    fprintf(Foutasciih.file, "%d %d\n", Nperiods, (INT4)error_getCode(ErrorCode));
+    fprintf(Foutasciih.file, "%d %d\n", Nperiods, (INT4)ErrorCode);
     if (fprintf(Foutasciih.file, "MAGICNUMBER %d\n", MAGICNUMBER) < 0)
     {
         report_writeErrorMsg(ERR_OUT_WRITE, "");
@@ -461,7 +478,7 @@ void output_saveID_ascii(char* id, FILE* file)
 //  Purpose: writes an object's name to the ascii output file.
 //
 {
-    INT4 n = strlen(id);
+    INT4 n =(INT4)strlen(id);
     fprintf(file, "%d %s\n", n, id);
 }
 
@@ -497,6 +514,8 @@ void output_saveSubcatchResults_ascii(double reportTime, FILE* file)
         // --- retrieve interpolated results for reporting time & write to file
         subcatch_getResults(j, f, SubcatchResults);
         if ( Subcatch[j].rptFlag)
+
+            //printf("save ascii get result %d\n", Subcatch[j].rptFlag);
             for (k = 0; k < NumSubcatchVars; k++)
             {
                 fprintf(file, "%g ", SubcatchResults[k]);
@@ -576,18 +595,35 @@ void output_saveLinkResults_ascii(double reportTime, FILE* file)
 
 //=============================================================================
 
+void output_initAvgResults_ascii()
+{
+    int i, j;
+    Nsteps = 0;
+    for (i = 0; i < NumNodes; i++)
+    {
+        for (j = 0; j < NumNodeVars; j++) AvgNodeResults[i].xAvg[j] = 0.0;
+    }
+    for (i = 0; i < NumLinks; i++)
+    {
+        for (j = 0; j < NumLinkVars; j++) AvgLinkResults[i].xAvg[j] = 0.0;
+    }
+}
+
+//=============================================================================
+
 void output_saveAvgResults_ascii(FILE* file)
 {
-    int i, j, k;
+    int i, k;
 
     // --- examine each reportable node
+    //printf("save ascii nodes %d\n", Nsteps);
     for (i = 0; i < NumNodes; i++)
     {
         // --- determine the node's average results
-        for (j = 0; j < NumNodeVars; j++)
-        {
-            NodeResults[j] = AvgNodeResults[i].xAvg[j] / Nsteps;
-        }
+        //for (j = 0; j < NumNodeVars; j++)
+        //{
+        //    NodeResults[j] = AvgNodeResults[i].xAvg[j] / Nsteps;
+        //}
 
         // --- save average results to file
         for (k = 0; k < NumNodeVars; k++)
@@ -597,13 +633,14 @@ void output_saveAvgResults_ascii(FILE* file)
     }
 
     // --- examine each reportable link
+    //printf("save ascii links\n");
     for (i = 0; i < NumLinks; i++)
     {
         // --- determine the link's average results
-        for (j = 0; j < NumLinkVars; j++)
-        {
-            LinkResults[j] = AvgLinkResults[i].xAvg[j] / Nsteps;
-        }
+        //for (j = 0; j < NumLinkVars; j++)
+        //{
+        //    LinkResults[j] = AvgLinkResults[i].xAvg[j] / Nsteps;
+        //}
 
         // --- save average results to file
         for (k = 0; k < NumLinkVars; k++)
@@ -611,4 +648,6 @@ void output_saveAvgResults_ascii(FILE* file)
             fprintf(file, "%g ", LinkResults[k]);
         }
     }
+    //printf("OUT\n");
+    //output_initAvgResults_ascii();
 }

@@ -151,6 +151,7 @@
     <ClCompile Include="..\iface.c" />
     <ClCompile Include="..\infil.c" />
     <ClCompile Include="..\inflow.c" />
+    <ClCompile Include="..\inlet.c" />
     <ClCompile Include="..\input.c" />
     <ClCompile Include="..\inputrpt.c" />
     <ClCompile Include="..\keywords.c" />
@@ -177,6 +178,7 @@
     <ClCompile Include="..\snow.c" />
     <ClCompile Include="..\stats.c" />
     <ClCompile Include="..\statsrpt.c" />
+    <ClCompile Include="..\street.c" />
     <ClCompile Include="..\subcatch.c" />
     <ClCompile Include="..\surfqual.c" />
     <ClCompile Include="..\swmm5.c" />
@@ -199,6 +201,7 @@
     <ClInclude Include="..\hash.h" />
     <ClInclude Include="..\headers.h" />
     <ClInclude Include="..\infil.h" />
+    <ClInclude Include="..\inlet.h" />
     <ClInclude Include="..\keywords.h" />
     <ClInclude Include="..\lid.h" />
     <ClInclude Include="..\macros.h" />
@@ -206,6 +209,7 @@
     <ClInclude Include="..\mempool.h" />
     <ClInclude Include="..\objects.h" />
     <ClInclude Include="..\odesolve.h" />
+    <ClInclude Include="..\street.h" />
     <ClInclude Include="..\swmm5.h" />
     <ClInclude Include="..\text.h" />
   </ItemGroup>

@@ -2,12 +2,16 @@
 //   inputrpt.c
 //
 //   Project:  EPA SWMM5
-//   Version:  5.1
-//   Date:     03/20/14 (Build 5.1.001)
+//   Version:  5.2
+//   Date:     11/01/21 (Build 5.2.0)
 //   Author:   L. Rossman
 //
 //   Report writing functions for input data summary.
 //
+//   Update History
+//   ==============
+//   Build 5.2.0:
+//   - Support added for reporting Street geometry tables.
 //-----------------------------------------------------------------------------
 #define _CRT_SECURE_NO_DEPRECATE
 
@@ -42,6 +46,7 @@ void inputrpt_writeInput()
     fprintf(Frpt.file, "\n  Number of links ........... %d", Nobjects[LINK]);
     fprintf(Frpt.file, "\n  Number of pollutants ...... %d", Nobjects[POLLUT]);
     fprintf(Frpt.file, "\n  Number of land uses ....... %d", Nobjects[LANDUSE]);
+    fprintf(Frpt.file, "\n  Number of heat recv devices %d", Nobjects[HEATR]);
 
     if ( Nobjects[POLLUT] > 0 )
     {
@@ -81,9 +86,24 @@ void inputrpt_writeInput()
             "\n  Name                 Units   Temp.   Temp.    1/days    ");
         fprintf(Frpt.file,
             "\n  -----------------------------------------------------------------------");
-            fprintf(Frpt.file, "\n  %-20s %5s%10.2f%10.2f%10.2f", WTemperature.ID,
-                QualUnitsWords[WTemperature.units], WTemperature.pptTemp,
-                WTemperature.gwTemp, WTemperature.kDecay * SECperDAY);
+        fprintf(Frpt.file, "\n  %-20s %5s%10.2f%10.2f%10.2f", WTemperature.ID,
+            QualUnitsWords[WTemperature.units], WTemperature.pptTemp,
+            WTemperature.gwTemp, WTemperature.kDecay * SECperDAY);
+
+        //if (Nobjects[HEATR] > 0)
+        //{
+        //    WRITE("");
+        //    WRITE("");
+        //    WRITE("*****************");
+        //    WRITE("Heat recovery devices Summary");
+        //    WRITE("*****************");
+        //    fprintf(Frpt.file,
+        //        "\n                               Link     heat          ");
+        //    fprintf(Frpt.file,
+        //        "\n  -----------------------------------------------------------------------");
+        //    fprintf(Frpt.file, "\n  %-20s %5s%10.2f%10.2f%10.2f", Heatr.Link,
+        //        Heatr.heat);
+        //}
     }
     /* END modification by Alejandro Figueroa | EAWAG */
 
@@ -257,6 +277,9 @@ void inputrpt_writeInput()
                 else if ( Link[i].xsect.type == IRREGULAR )
                     fprintf(Frpt.file, "%-16s ",
                     Transect[Link[i].xsect.transect].ID);
+                else if ( Link[i].xsect.type == STREET_XSECT )
+                    fprintf(Frpt.file, "%-16s ",
+                    Street[Link[i].xsect.transect].ID);
                 else fprintf(Frpt.file, "%-16s ",
                     XsectTypeWords[Link[i].xsect.type]);
                 fprintf(Frpt.file, "%8.2f %8.2f %8.2f %8.2f      %3d %8.2f",
@@ -301,7 +324,6 @@ void inputrpt_writeInput()
             }
         }
     }
-    WRITE("");
 
     if (Nobjects[TRANSECT] > 0)
     {
@@ -330,6 +352,37 @@ void inputrpt_writeInput()
             {
                  if ( m % 5 == 1 ) fprintf(Frpt.file,"\n          ");
                  fprintf(Frpt.file, "%10.4f ", Transect[i].widthTbl[m]);
+            }
+        }
+    }
+
+    if (Nobjects[STREET] > 0)
+    {
+        WRITE("");
+        WRITE("");
+        WRITE("**************");
+        WRITE("Street Summary");
+        WRITE("**************");
+        for (i = 0; i < Nobjects[STREET]; i++)
+        {
+            fprintf(Frpt.file, "\n\n  Street %s", Street[i].ID);
+            fprintf(Frpt.file, "\n  Area:  ");
+            for (m = 1; m < Street[i].transect.nTbl; m++)
+            {
+                if (m % 5 == 1) fprintf(Frpt.file, "\n          ");
+                fprintf(Frpt.file, "%10.4f ", Street[i].transect.areaTbl[m]);
+            }
+            fprintf(Frpt.file, "\n  Hrad:  ");
+            for (m = 1; m < Street[i].transect.nTbl; m++)
+            {
+                if (m % 5 == 1) fprintf(Frpt.file, "\n          ");
+                fprintf(Frpt.file, "%10.4f ", Street[i].transect.hradTbl[m]);
+            }
+            fprintf(Frpt.file, "\n  Width: ");
+            for (m = 1; m < Street[i].transect.nTbl; m++)
+            {
+                if (m % 5 == 1) fprintf(Frpt.file, "\n          ");
+                fprintf(Frpt.file, "%10.4f ", Street[i].transect.widthTbl[m]);
             }
         }
     }

@@ -2,41 +2,35 @@
 //   enums.h
 //
 //   Project: EPA SWMM5
-//   Version: 5.1
-//   Date:    03/20/14  (Build 5.1.001)
-//            04/14/14  (Build 5.1.004)
-//            09/15/14  (Build 5.1.007)
-//            03/19/15  (Build 5.1.008)
-//            08/05/15  (Build 5.1.010)
-//            08/01/16  (Build 5.1.011)
-//            05/10/18  (Build 5.1.013)
+//   Version: 5.2
+//   Date:    11/01/21  (Build 5.2.0)
 //   Author:  L. Rossman
 //
-//   Enumerated variables
+//   Enumerated constants
 //
+//   Update History
+//   ==============
 //   Build 5.1.004:
 //   - IGNORE_RDII for the ignore RDII option added.
-//
 //   Build 5.1.007:
 //   - s_GWF for [GWF] input file section added.
 //   - s_ADJUST for [ADJUSTMENTS] input file section added.
-//
 //   Build 5.1.008:
 //   - Enumerations for fullness state of a conduit added.
 //   - NUM_THREADS added for number of parallel threads option.
 //   - Runoff flow categories added to represent mass balance components.
-//
 //   Build 5.1.010:
 //   - New ROADWAY_WEIR type of weir added.
 //   - Potential evapotranspiration (PET) added as a system output variable.
-//
 //   Build 5.1.011:
 //   - s_EVENT added to InputSectionType enumeration.
-//
 //   Build 5.1.013:
 //   - SURCHARGE_METHOD and RULE_STEP options added.
-//   - WEIR_CURVE added as a curve type.
-//
+//   - WEIR_CURVE added as a curve type. 
+//   Build 5.2.0:
+//   - Support added for Streets and Inlets.
+//   - Support added for variable speed pumps.
+//   - Support added for analytical storage shapes.
 //-----------------------------------------------------------------------------
 
 #ifndef ENUMS_H
@@ -54,6 +48,8 @@
       POLLUT,                          // pollutant
 /* START modification by Alejandro Figueroa | EAWAG */
       WTEMPERATURE,                    // temperature
+      HEATR,                           // heat recovery devices
+      SEDTEMP,                         // sediment temperature
 /* END modification by Alejandro Figueroa | EAWAG */
       LANDUSE,                         // land use category
       TIMEPATTERN,                     // dry weather flow time pattern
@@ -66,12 +62,14 @@
       SNOWMELT,                        // snowmelt parameter set
       SHAPE,                           // custom conduit shape
       LID,                             // LID treatment units
+      STREET,                          // street cross section
+      INLET,                           // street inlet design
       MAX_OBJ_TYPES};
 
 //-------------------------------------
 // Names of Node sub-types
 //-------------------------------------
- #define MAX_NODE_TYPES 4
+ #define MAX_NODE_TYPES 5
  enum NodeType {
       JUNCTION,
       OUTFALL,
@@ -144,7 +142,8 @@
       SEMICIRCULAR,                    // 21     closed
       IRREGULAR,                       // 22
       CUSTOM,                          // 23     closed
-      FORCE_MAIN};                     // 24     closed
+      FORCE_MAIN,                      // 24     closed
+      STREET_XSECT};                   // 25
 
 //-------------------------------------
 // Measurement units types
@@ -220,7 +219,7 @@
 // Computed link quantities
 //-------------------------------------
    /* START modification by Alejandro Figueroa | Eawag */
- #define MAX_LINK_RESULTS 8
+ #define MAX_LINK_RESULTS 10
  enum LinkResultType {
      LINK_FLOW,                       // flow rate
      LINK_DEPTH,                      // flow depth
@@ -229,11 +228,13 @@
      LINK_CAPACITY,                   // ratio of area to full area
      LINK_AIR_VELOCITY,               // air flow velocity
      LINK_QUAL,                       // concentration of each pollutant
-     LINK_WTEMP};                     // temperature
+     LINK_WTEMP,                      // temperature
+     LINK_HEAT,                       // heat_recovered
+     LINK_SEDIMENTT};                 // sediment temperature
 /* END modification by Alejandro Figueroa | Eawag */
 
 //-------------------------------------
-// System-wide flow quantities
+// System-wide quantities
 //-------------------------------------
 #define MAX_SYS_RESULTS 15
 enum SysFlowType {
@@ -319,7 +320,7 @@ enum  WindType {
       DRYONLY};                        // evap. allowed only in dry periods
 
  enum NormalizerType {
-      PER_AREA,                        // buildup is per unit or area
+      PER_AREA,                        // buildup is per unit of area
       PER_CURB};                       // buildup is per unit of curb length
 
  enum BuildupType {
@@ -412,7 +413,11 @@ enum  CompatibilityType {
 
  enum StorageType {
       TABULAR,                         // area v. depth from table
-      FUNCTIONAL};                     // area v. depth from power function
+      FUNCTIONAL,                      // area v. depth from power function
+      CYLINDRICAL,                     // area v. depth from elliptical cylinder
+      CONICAL,                         // area v. depth from elliptical cone
+      PARABOLOID,                      // area v. depth from elliptical paraboloid
+      PYRAMIDAL};                      // area v. depth from rectangular pyramid
 
  enum ReactorType {
       CSTR,                            // completely mixed reactor
@@ -422,6 +427,12 @@ enum  CompatibilityType {
       REMOVAL,                         // treatment stated as a removal
       CONCEN};                         // treatment stated as effluent concen.
 
+   /* START modification by Alejandro Figueroa | EAWAG */
+ enum HeatRType {
+      SHR,                             // Simple Heat recovery device
+      NHR};                           // new heat recovery device type.
+   /* END modification by Alejandro Figueroa | EAWAG */
+
  enum DividerType {
       CUTOFF_DIVIDER,                  // diverted flow is excess of cutoff flow
       TABULAR_DIVIDER,                 // table of diverted flow v. inflow
@@ -430,9 +441,10 @@ enum  CompatibilityType {
 
  enum PumpCurveType {
       TYPE1_PUMP,                      // flow varies stepwise with wet well volume
-      TYPE2_PUMP,                      // flow varies stepwise with inlet depth
+      TYPE2_PUMP,                      // flow varies stepwise with inlet depth 
       TYPE3_PUMP,                      // flow varies with head delivered
       TYPE4_PUMP,                      // flow varies with inlet depth
+      TYPE5_PUMP,                      // variable speed version of TYPE3 pump 
       IDEAL_PUMP};                     // outflow equals inflow
 
  enum OrificeType {
@@ -453,11 +465,18 @@ enum  CompatibilityType {
       RATING_CURVE,                    // flow rate v. head for outlet link
       CONTROL_CURVE,                   // control setting v. controller variable
       SHAPE_CURVE,                     // width v. depth for custom x-section
-      WEIR_CURVE,                      // discharge coeff. v. head for weir    //(5.1.013)
+      WEIR_CURVE,                      // discharge coeff. v. head for weir
       PUMP1_CURVE,                     // flow v. wet well volume for pump
       PUMP2_CURVE,                     // flow v. depth for pump (discrete)
       PUMP3_CURVE,                     // flow v. head for pump (continuous)
-      PUMP4_CURVE};                    // flow v. depth for pump (continuous)
+      PUMP4_CURVE,                     // flow v. depth for pump (continuous)
+      PUMP5_CURVE};                    // variable speed version of TYPE3 pump
+
+ enum NodeInletType {
+     NO_INLET,
+     BYPASS,
+     CAPTURE
+ };
 
  enum InputSectionType {
       s_TITLE,        s_OPTION,       s_FILE,         s_RAINGAGE,
@@ -467,36 +486,38 @@ enum  CompatibilityType {
       s_CONDUIT,      s_PUMP,         s_ORIFICE,      s_WEIR,
       s_OUTLET,       s_XSECTION,     s_TRANSECT,     s_LOSSES,
       /* START modification by Alejandro Figueroa | EAWAG */
-      s_CONTROL,      s_POLLUTANT,    s_WTEMPERATURE,  s_LANDUSE,
+      s_CONTROL,      s_POLLUTANT,    s_WTEMPERATURE,  s_HEATR,  
+      s_SEDTEMP,      s_LANDUSE,
       s_BUILDUP,      s_WASHOFF,      s_COVERAGE,     s_INFLOW,
       s_DWF,          s_PATTERN,      s_RDII,         s_UNITHYD,
       s_LOADING,      s_TREATMENT,    s_CURVE,        s_TIMESERIES,
       s_REPORT,       s_COORDINATE,   s_VERTICES,     s_POLYGON,
       s_LABEL,        s_SYMBOL,       s_BACKDROP,     s_TAG,          
       s_PROFILE,      s_MAP,          s_LID_CONTROL,  s_LID_USAGE,    
-      s_GWF,          s_ADJUST,       s_EVENT};
+      s_GWF,          s_ADJUST,       s_EVENT,        s_STREET,       s_INLET_USAGE,
+      s_INLET};
       /* END modification by Alejandro Figueroa | EAWAG */
 
  enum InputOptionType {
-    FLOW_UNITS, INFIL_MODEL, ROUTE_MODEL,
-    START_DATE, START_TIME, END_DATE,
-    END_TIME, REPORT_START_DATE, REPORT_START_TIME,
-    SWEEP_START, SWEEP_END, START_DRY_DAYS,
-    WET_STEP, DRY_STEP, ROUTE_STEP, RULE_STEP,                                   //(5.1.013)
-    REPORT_STEP, ALLOW_PONDING, INERT_DAMPING,
-    SLOPE_WEIGHTING, VARIABLE_STEP, NORMAL_FLOW_LTD,
-    LENGTHENING_STEP, MIN_SURFAREA, COMPATIBILITY,
-    SKIP_STEADY_STATE, TEMPDIR, IGNORE_RAINFALL,
-    FORCE_MAIN_EQN, LINK_OFFSETS, MIN_SLOPE,
-    IGNORE_SNOWMELT, IGNORE_GWATER, IGNORE_ROUTING,
-    /* START modification by Alejandro Figueroa | EAWAG */
-    IGNORE_QUALITY, IGNORE_WTEMPERATURE, MAX_TRIALS, HEAD_TOL,
-    /* END modification by Alejandro Figueroa | EAWAG */
-    SYS_FLOW_TOL, LAT_FLOW_TOL, IGNORE_RDII,
-    MIN_ROUTE_STEP, NUM_THREADS, SURCHARGE_METHOD,	                  //(5.1.013)
-	  /* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
-	  TEMP_MODEL,		 DENSITY,			 SPEC_HEAT_CAPACITY,
-      HUMIDITY, EXT_UNIT, GLOBTPAT, ASCII_OUT, 
+     FLOW_UNITS, INFIL_MODEL, ROUTE_MODEL,
+     START_DATE, START_TIME, END_DATE,
+     END_TIME, REPORT_START_DATE, REPORT_START_TIME,
+     SWEEP_START, SWEEP_END, START_DRY_DAYS,
+     WET_STEP, DRY_STEP, ROUTE_STEP, RULE_STEP,                                   //(5.1.013)
+     REPORT_STEP, ALLOW_PONDING, INERT_DAMPING,
+     SLOPE_WEIGHTING, VARIABLE_STEP, NORMAL_FLOW_LTD,
+     LENGTHENING_STEP, MIN_SURFAREA, COMPATIBILITY,
+     SKIP_STEADY_STATE, TEMPDIR, IGNORE_RAINFALL,
+     FORCE_MAIN_EQN, LINK_OFFSETS, MIN_SLOPE,
+     IGNORE_SNOWMELT, IGNORE_GWATER, IGNORE_ROUTING,
+     /* START modification by Alejandro Figueroa | EAWAG */
+     IGNORE_QUALITY, IGNORE_WTEMPERATURE, MAX_TRIALS, HEAD_TOL,
+     /* END modification by Alejandro Figueroa | EAWAG */
+     SYS_FLOW_TOL, LAT_FLOW_TOL, IGNORE_RDII,
+     MIN_ROUTE_STEP, NUM_THREADS, SURCHARGE_METHOD,	                  //(5.1.013)
+       /* START modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
+       TEMP_MODEL, DENSITY, SPEC_HEAT_CAPACITY,
+       HUMIDITY, EXT_UNIT, GLOBTPAT, ASCII_OUT, TSBINARY,
 	  //UA, EXT_UNIT
 	  /* END modification by Peter Schlagbauer | TUGraz; Revised by Alejandro Figueroa | Eawag */
 	  };    
